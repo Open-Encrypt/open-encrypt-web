@@ -10,3 +10,4 @@ RESOURCES:
 - https://math.colorado.edu/~kstange/teaching-resources/crypto/RingLWE-notes.pdf
 - https://csrc.nist.gov/projects/post-quantum-cryptography
 - https://www.redhat.com/en/blog/post-quantum-cryptography-lattice-based-cryptography
+- https://thelatticeclub.com
