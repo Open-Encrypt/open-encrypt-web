@@ -230,7 +230,7 @@
             if (!$valid_recipient){
                 echo "Error: Invalid recipient.";
             }
-            $valid_message = valid_input($message,240);
+            $valid_message = valid_input($message,40);
             if (!$valid_message){
                 echo "Error: Invalid message.";
             }
