@@ -16,21 +16,21 @@ RESOURCES:
 Three tables are required to store login_info, messages, and public_keys.
 
 _login_info_:
-  username CHAR(14)
-  password CHAR(60)
+  - username CHAR(14)
+  - password CHAR(60)
 
 Passwords are hashed using standard hashing. 
 
 _messages_:
-  from CHAR(14)
-  to CHAR(14)
-  message VARCHAR(8000)
+  - from CHAR(14)
+  - to CHAR(14)
+  - message VARCHAR(8000)
 
 Messages are stored encrypted. There is an inflation ratio of ~192.
 
 _public_keys_:
-  username CHAR(14)
-  public_key CHAR(192)
+  - username CHAR(14)
+  - public_key CHAR(192)
 
 Public keys are a single string representing two (reduced cyclotomic) polynomials which are each arrays of ints.
 
