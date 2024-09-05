@@ -11,34 +11,34 @@ RESOURCES:
 
 ---
 
-SQL: 
+**SQL**: 
 
 Three tables are required to store login_info, messages, and public_keys.
 
-login_info:
+_login_info_:
   username CHAR(14)
   password CHAR(60)
 
 Passwords are hashed using standard hashing. 
 
-messages:
+_messages_:
   from CHAR(14)
   to CHAR(14)
   message VARCHAR(8000)
 
 Messages are stored encrypted. There is an inflation ratio of ~192.
 
-public_keys:
+_public_keys_:
   username CHAR(14)
   public_key CHAR(192)
 
 Public keys are a single string representing two (reduced cyclotomic) polynomials which are each arrays of ints.
 
-PHP:
+**PHP**:
 
 Used to handle basic account creation, login, and SQL insertions/lookups. 
 
-Python:
+**Python**:
 
 Scripts are executed directly using `escapeshellcmd` and `shell_exec`. Output is printed and passed back as a string.
   
