@@ -228,11 +228,11 @@
 
             $valid_recipient = valid_input($to_username,14);
             if (!$valid_recipient){
-                echo "Error: Invalid recipient.";
+                echo "Error: Invalid recipient.<br>";
             }
             $valid_message = valid_input($message,40);
             if (!$valid_message){
-                echo "Error: Invalid message.";
+                echo "Error: Invalid message.<br>";
             }
             
             if(username_exists($to_username,"login_info",$conn) and $valid_recipient and $valid_message){
