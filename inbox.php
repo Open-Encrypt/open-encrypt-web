@@ -125,7 +125,7 @@
         <h1>Under construction.</h1>
     </body>
 
-    <a href="index.php">Home</a>
+    <a href="index.html">Home</a>
     <a href="inbox.php">Messages</a>
     <form method="post">
         <input type="submit" name="logout" class="button" value="Logout" /> 

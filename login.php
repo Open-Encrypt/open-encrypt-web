@@ -18,7 +18,7 @@
         <h1>Under construction.</h1>
     </body>
 
-    <a href="index.php">Home</a>
+    <a href="index.html">Home</a>
     <a href="create_account.php">Create Account</a>
 
     <form action="login.php" method="POST">

@@ -6,7 +6,7 @@
         <h1>Under construction.</h1>
     </body>
 
-    <a href="index.php">Home</a>
+    <a href="index.html">Home</a>
     <a href="login.php">Login</a>
 
     <form action="create_account.php" method="POST">
