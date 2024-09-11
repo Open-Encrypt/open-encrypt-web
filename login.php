@@ -1,6 +1,8 @@
 <?php
     error_reporting(E_ALL);
     ini_set('display_errors', '1');
+    // form a connection to the SQL database
+    include_once 'db_config.php';
     session_start();
     function redirect($url) {
         header('Location: '.$url);
@@ -35,9 +37,6 @@
     ?>
 
 <?php
-
-// form a connection to the SQL database
-include_once 'db_config.php';
 
 // validate form input
 function validate($user_input,$max_len,$type= "input"){
