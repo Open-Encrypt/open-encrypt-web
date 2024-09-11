@@ -26,7 +26,7 @@ _messages_:
   - to CHAR(14)
   - message VARCHAR(8000)
 
-Messages are stored encrypted. There is an inflation ratio of ~13.7.
+Messages are stored encrypted. The inflation ratio is ~13.7.
 
 _public_keys_:
   - username CHAR(14)
@@ -40,5 +40,5 @@ Used to handle basic account creation, login, and SQL insertions/lookups.
 
 **Python**:
 
-Scripts are executed directly using `escapeshellcmd` and `shell_exec`. Output is printed and passed back as a string.
+Python scripts are executed directly using `shell_exec`. Output is printed and passed back as a string.
   
