@@ -26,7 +26,7 @@ _messages_:
   - to CHAR(14)
   - message VARCHAR(8000)
 
-Messages are stored encrypted. There is an inflation ratio of ~192.
+Messages are stored encrypted. There is an inflation ratio of ~13.7.
 
 _public_keys_:
   - username CHAR(14)
