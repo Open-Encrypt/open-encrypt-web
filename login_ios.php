@@ -58,7 +58,7 @@ function username_exists($username,$conn,&$response){
 function store_token($username,$conn,$token){
     $sql_store_token = "UPDATE login_info SET token = '$token' WHERE username = '$username'";
     try{
-        mysqli_query($conn, $sql_insert);
+        mysqli_query($conn, $sql_store_token);
     }
     catch(Exception $e) {
         $response['error'] = "Error: " . $sql_insert . "|" . mysqli_error($conn);
