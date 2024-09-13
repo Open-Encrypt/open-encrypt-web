@@ -6,7 +6,6 @@
     header('Content-Type: application/json'); // Set the content type to JSON
     $response = array();
     $response['status'] = "failure";
-    //$response['error'] = "no error";
     // Function to generate a secure token
     function generate_token() {
         return bin2hex(random_bytes(16)); // 32 characters long
@@ -55,6 +54,16 @@ function username_exists($username,$conn,&$response){
         $response['error'] = $sql_unique . "-->" . mysqli_error($conn);
     }
 }
+//store the generated login token in the login_info database
+function store_token($username,$conn,$token){
+    $sql_store_token = "UPDATE login_info SET token = '$token' WHERE username = '$username'";
+    try{
+        mysqli_query($conn, $sql_insert);
+    }
+    catch(Exception $e) {
+        $response['error'] = "Error: " . $sql_insert . "|" . mysqli_error($conn);
+    }
+}
 ?>
 
 <?php
@@ -85,6 +94,7 @@ if ($valid_username && $valid_password){
         if(password_verify($password,$row['password'])){
             $response['status'] = 'success';
             $response['token'] = generate_token();
+            store_token($username,$conn,$response['token']);
         }
     } 
     else {
