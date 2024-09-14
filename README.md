@@ -18,8 +18,9 @@ Three tables are required to store login_info, messages, and public_keys.
 _login_info_:
   - username CHAR(14)
   - password CHAR(60)
+  - token CHAR(32)
 
-Passwords are hashed using standard hashing. 
+Passwords are hashed using standard hashing. Secure, random tokens stored for user sessions.
 
 _messages_:
   - from CHAR(14)
