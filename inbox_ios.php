@@ -129,6 +129,7 @@ function generate_keys(&$response){
     $public_key_a = implode(',', $json_object["public_a"]);
     $response['public_key'] = $public_key_b . $public_key_a;
     $response['secret_key'] = $secret_key;
+    $response['status'] = "success";
 }
 ?>
 
