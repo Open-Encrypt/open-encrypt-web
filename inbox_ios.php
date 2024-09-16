@@ -106,12 +106,29 @@ function get_public_key($username,$conn,&$response){
             if ($result = mysqli_query($conn, $sql_select)) {
                 $row = $result->fetch_assoc();
                 $response['public_key'] = $row['public_key'];
+                $response['status'] = "success";
             }
         }
         catch(Exception $e) {
             $response['error'] = "Exception: " . $e->getMessage();
         }
     }
+}
+//define a function which generates public and private keys
+function generate_keys(&$response){
+    $command = escapeshellcmd('/home/jackson/open_encrypt/openencryptvenv/bin/python3 keygen.py');
+    $json_string = shell_exec($command);
+    try{
+        $json_object = json_decode($json_string, true, 512, JSON_THROW_ON_ERROR);
+    }
+    catch(Exception $e){
+        print $e;
+    }
+    $secret_key = implode('', $json_object["secret"]);
+    $public_key_b = implode(',', $json_object["public_b"]);
+    $public_key_a = implode(',', $json_object["public_a"]);
+    $response['public_key'] = $public_key_b . $public_key_a;
+    $response['secret_key'] = $secret_key;
 }
 ?>
 
@@ -129,6 +146,9 @@ if(isset($data['username']) && isset($data['token']) && isset($data['action'])){
         }
         if($action == "get_public_key"){
             get_public_key($username,$conn,$response);
+        }
+        if($action == "generate_keys"){
+            generate_keys($response);
         }
     }
 }
