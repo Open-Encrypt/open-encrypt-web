@@ -1,6 +1,7 @@
 <?php
-    error_reporting(E_ALL);
-    ini_set('display_errors', '1');
+    //error logging settings
+    ini_set('log_errors', '1');
+    ini_set('error_log', 'error.log');
     // form a connection to the SQL database
     include_once 'db_config.php';
     header('Content-Type: application/json'); // Set the content type to JSON
@@ -30,7 +31,7 @@ function verify_token($username,$conn,$token){
         }
     }
     catch(Exception $e) {
-        $result['error'] = "Error: " . $sql_insert . "<br>" . mysqli_error($conn);
+        $response['error'] = "Exception: " . $e->getMessage();
         return false;
     }
 }
@@ -76,21 +77,39 @@ function get_messages($username,$conn,$secret_key,&$response){
         }
     }
     catch(Exception $e) {
-        $response['error'] = "Error: " . $sql_get_messages . "|" . mysqli_error($conn);
+        $response['error'] = "Exception: " . $e->getMessage();
+    }
+}
+//function to check whether a username exists in login_info table in database users
+function username_exists($username,$conn,$table,&$response){
+    $sql_check = "SELECT COUNT(*) FROM $table WHERE username = '$username'";
+    try{
+        if ($result = mysqli_query($conn, $sql_check)) {
+            $row = $result->fetch_assoc();
+            if($row['COUNT(*)'] > 0){
+                return true;
+            }
+            else{
+                return false;
+            }
+        }
+    }
+    catch(Exception $e) {
+        $response['error'] = "Exception: " . $e->getMessage();
     }
 }
 //retrieve user's public key from database
 function get_public_key($username,$conn,&$response){
-    if(username_exists($username,"public_keys",$conn)){
+    if(username_exists($username,$conn,"public_keys",$response)){
         $sql_select = "SELECT public_key FROM `public_keys` WHERE `username` = '$username'";
         try{
             if ($result = mysqli_query($conn, $sql_select)) {
                 $row = $result->fetch_assoc();
-                array_push($response['public_key'],$row['public_key']);
+                $response['public_key'] = $row['public_key'];
             }
         }
         catch(Exception $e) {
-            $response['error'] = "Error: " . $sql_insert . "|" . mysqli_error($conn);
+            $response['error'] = "Exception: " . $e->getMessage();
         }
     }
 }
