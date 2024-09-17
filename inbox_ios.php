@@ -33,6 +33,12 @@ function decrypt_message($secret_key,$ciphertext){
     $decrypted_string = shell_exec($command);
     return $decrypted_string;
 }
+//encrypt a message using the given public key
+function encrypt_message($public_key,$plaintext){
+    $command = escapeshellcmd('/home/jackson/open_encrypt/openencryptvenv/bin/python3 encrypt.py' . ' ' . $public_key . ' ' . $plaintext);
+    $encrypted_string = shell_exec($command);
+    return $encrypted_string;
+}
 // validate user input from forms
 function valid_secret_key($secret_key){
     if (empty($secret_key)) {
@@ -43,6 +49,22 @@ function valid_secret_key($secret_key){
         return false;
     }
     elseif (strlen($secret_key) > 16) {
+        return false;
+    }
+    else{
+        return true;
+    }
+}
+// validate user input from forms
+function valid_input($user_input,$max_len){
+    if (empty($user_input)) {
+        return false;
+    }
+    // To check that username only contains alphabets, numbers, and underscores 
+    elseif (!preg_match("/^[a-zA-Z0-9_]*$/", $user_input)) {
+        return false;
+    }
+    elseif (strlen($user_input) > $max_len) {
         return false;
     }
     else{
@@ -179,7 +201,51 @@ function save_public_key($username, $conn, $public_key, &$response) {
         }
     }
 }
+//retrieve the public key from the database for the given username
+function fetch_public_key($username,$conn,&$response){
+    if(username_exists($username,$conn,"public_keys",$response)){
+        $sql_select = "SELECT public_key FROM `public_keys` WHERE `username` = '$username'";
+        try{
+            if ($result = mysqli_query($conn, $sql_select)) {
+                $row = $result->fetch_assoc();
+                return $row['public_key'];
+            }
+        }
+        catch(Exception $e) {
+            $response['error'] = "Exception: " . $e->getMessage();
+        }
+    }
+}
+//function for sending messages
+function send_message($from_username,$to_username,$message,$conn,&$response){
 
+    $valid_recipient = valid_input($to_username,14);
+    if (!$valid_recipient){
+        $response['error'] = "Error: Invalid recipient.";
+    }
+    $valid_message = valid_input($message,240);
+    if (!$valid_message){
+        $response['error'] = "Error: Invalid message.";
+    }
+           
+    if(username_exists($to_username,$conn,"login_info",$response) and $valid_recipient and $valid_message){
+        $public_key = fetch_public_key($to_username,$conn,$response);
+        $encrypted_message = encrypt_message($public_key,$message);
+        // form the sql string to insert the message into the tables messages
+        $sql_insert = "INSERT INTO `messages` (`from`, `to`, `message`) VALUES ('$from_username', '$to_username','$encrypted_message')";
+        try{
+            if (mysqli_query($conn, $sql_insert)) {
+                $response['status'] = "success";
+            }
+        }
+        catch(Exception $e) {
+            $response['error'] = "Exception: " . $e->getMessage();
+        }
+    }
+    else{
+        $response['error'] = "Error: username does not exist or invalid recipient or invalid message.";
+    }    
+}
 ?>
 
 <?php
@@ -203,6 +269,11 @@ if(isset($data['username']) && isset($data['token']) && isset($data['action'])){
         if($action == "save_public_key"){
             $public_key = $data['public_key'];
             save_public_key($username,$conn,$public_key,$response);
+        }
+        if($action == "send_message"){
+            $to_username = $data['recipient'];
+            $message = $data['message'];
+            send_message($username,$to_username,$message,$conn,$response);
         }
     }
 }
