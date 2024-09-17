@@ -1,23 +1,15 @@
 <?php
-    //error logging settings
-    ini_set('log_errors', '1');
-    ini_set('error_log', 'error.log');
-    // form a connection to the SQL database
-    include_once 'db_config.php';
-    header('Content-Type: application/json'); // Set the content type to JSON
-    $response = array();
-?>
-
-<?php
-
+ini_set('display_errors', 0);  // Display errors in the browser (for debugging purposes)
+ini_set('log_errors', 1);      // Enable error logging
+ini_set('error_log', '/var/www/open-encrypt.com/html/error.log');  // Absolute path to the error log file
+error_reporting(E_ALL);         // Report all types of errors
+// form a connection to the SQL database
+include_once 'db_config.php';
+header('Content-Type: application/json'); // Set the content type to JSON
+$response = array();
 // Get the raw POST data (JSON input)
 $data = json_decode(file_get_contents('php://input'), true);
-
 $response['status'] = 'failure';
-$response['from'] = [];
-$response['to'] = [];
-$response['messages'] = [];
-
 ?>
 
 <?php
@@ -59,6 +51,9 @@ function valid_secret_key($secret_key){
 }
 //function to get messages from the database
 function get_messages($username,$conn,$secret_key,&$response){
+    $response['from'] = [];
+    $response['to'] = [];
+    $response['messages'] = [];
     $valid_secret_key = valid_secret_key($secret_key);
     $sql_get_messages = "SELECT * FROM messages WHERE `to` = '$username'";
     try{
@@ -127,10 +122,64 @@ function generate_keys(&$response){
     $secret_key = implode('', $json_object["secret"]);
     $public_key_b = implode(',', $json_object["public_b"]);
     $public_key_a = implode(',', $json_object["public_a"]);
-    $response['public_key'] = $public_key_b . $public_key_a;
+    $response['public_key'] = $public_key_b . "," . $public_key_a;
     $response['secret_key'] = $secret_key;
     $response['status'] = "success";
 }
+// Function to store public key in the database
+function save_public_key($username, $conn, $public_key, &$response) {
+    // Check if the username already exists in the public_keys table
+    if (!username_exists($username, $conn,"public_keys", $response)) {
+        // Insert the public key into the database
+        $sql_insert = "INSERT INTO `public_keys` (`username`, `public_key`) VALUES ('$username', '$public_key')";
+        try {
+            if (mysqli_query($conn, $sql_insert)) {
+                // Check if rows were affected
+                if (mysqli_affected_rows($conn) > 0) {
+                    $response['status'] = "success";
+                    error_log("Public key inserted successfully for username: $username");
+                } else {
+                    $response['status'] = "failure";
+                    $response['error'] = "Insert query did not affect any rows.";
+                    error_log("Insert query did not affect any rows for username: $username");
+                }
+            } else {
+                $response['status'] = "failure";
+                $response['error'] = "Insert query failed: " . mysqli_error($conn);
+                error_log("Insert query failed for username: $username with error: " . mysqli_error($conn));
+            }
+        } catch (Exception $e) {
+            $response['status'] = "failure";
+            $response['error'] = "Exception: " . $e->getMessage();
+            error_log("Exception during insert for username: $username with error: " . $e->getMessage());
+        }
+    } else {
+        // Update the existing public key in the database
+        $sql_update = "UPDATE public_keys SET public_key = '$public_key' WHERE username = '$username'";
+        try {
+            if (mysqli_query($conn, $sql_update)) {
+                // Check if rows were affected
+                if (mysqli_affected_rows($conn) > 0) {
+                    $response['status'] = "success";
+                    error_log("Public key updated successfully for username: $username");
+                } else {
+                    $response['status'] = "failure";
+                    $response['error'] = "Update query did not affect any rows.";
+                    error_log("Update query did not affect any rows for username: $username");
+                }
+            } else {
+                $response['status'] = "failure";
+                $response['error'] = "Update query failed: " . mysqli_error($conn);
+                error_log("Update query failed for username: $username with error: " . mysqli_error($conn));
+            }
+        } catch (Exception $e) {
+            $response['status'] = "failure";
+            $response['error'] = "Exception: " . $e->getMessage();
+            error_log("Exception during update for username: $username with error: " . $e->getMessage());
+        }
+    }
+}
+
 ?>
 
 <?php
@@ -138,11 +187,11 @@ function generate_keys(&$response){
 if(isset($data['username']) && isset($data['token']) && isset($data['action'])){
     $username = $data['username'];
     $token = $data['token'];
-    $secret_key = $data['secret_key'];
     $action = $data['action'];
 
     if(verify_token($username,$conn,$token)){
         if($action == "get_messages"){
+            $secret_key = $data['secret_key'];
             get_messages($username,$conn,$secret_key,$response);
         }
         if($action == "get_public_key"){
@@ -150,6 +199,10 @@ if(isset($data['username']) && isset($data['token']) && isset($data['action'])){
         }
         if($action == "generate_keys"){
             generate_keys($response);
+        }
+        if($action == "save_public_key"){
+            $public_key = $data['public_key'];
+            save_public_key($username,$conn,$public_key,$response);
         }
     }
 }
