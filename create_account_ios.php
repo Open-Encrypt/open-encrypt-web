@@ -39,10 +39,11 @@ function username_exists($username,$conn,&$response){
         if ($result = mysqli_query($conn, $sql_unique)) {
             $row = $result->fetch_assoc();
             if($row['COUNT(*)'] > 0){
+                $response['error'] = "Username already exists.";
                 return True;
             }
             else{
-                $response['error'] = "Username does not exist.";
+                //$response['error'] = "Username does not exist.";
                 return False;
             }
         }
