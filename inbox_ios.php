@@ -29,13 +29,13 @@ function verify_token($username,$conn,$token){
 }
 //decrypt a message using the secret key
 function decrypt_message($secret_key,$ciphertext){
-    $command = escapeshellcmd('/home/jackson/open_encrypt/openencryptvenv/bin/python3 decrypt.py' . ' ' . $secret_key . ' ' . $ciphertext);
+    $command = escapeshellcmd('/home/jackson/open_encrypt/openencryptvenv/bin/python3 decrypt_ring_lwe.py' . ' ' . $secret_key . ' ' . $ciphertext);
     $decrypted_string = shell_exec($command);
     return $decrypted_string;
 }
 //encrypt a message using the given public key
 function encrypt_message($public_key,$plaintext){
-    $command = escapeshellcmd('/home/jackson/open_encrypt/openencryptvenv/bin/python3 encrypt.py' . ' ' . $public_key . ' ' . $plaintext);
+    $command = escapeshellcmd('/home/jackson/open_encrypt/openencryptvenv/bin/python3 encrypt_ring_lwe.py' . ' ' . $public_key . ' ' . $plaintext);
     $encrypted_string = shell_exec($command);
     return $encrypted_string;
 }
@@ -133,7 +133,7 @@ function get_public_key($username,$conn,&$response){
 }
 //define a function which generates public and private keys
 function generate_keys(&$response){
-    $command = escapeshellcmd('/home/jackson/open_encrypt/openencryptvenv/bin/python3 keygen.py');
+    $command = escapeshellcmd('/home/jackson/open_encrypt/openencryptvenv/bin/python3 keygen_ring_lwe.py');
     $json_string = shell_exec($command);
     try{
         $json_object = json_decode($json_string, true, 512, JSON_THROW_ON_ERROR);
