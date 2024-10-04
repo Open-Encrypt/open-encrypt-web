@@ -19,8 +19,7 @@ def keygen(size, modulus, poly_mod):
     b = polyadd(polymul(-a, sk, modulus, poly_mod), -e, modulus, poly_mod)
     return (b, a), sk
 
-# scheme's parameters
-# polynomial modulus degree
+#encryption scheme parameters
 n, q, t, poly_mod = parameters()
 # Keygen
 pk, sk = keygen(n, q, poly_mod)

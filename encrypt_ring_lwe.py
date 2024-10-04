@@ -7,7 +7,7 @@ from sys import argv
 n, q, t, poly_mod = parameters()
 
 def encrypt(pk, size, q, t, poly_mod, pt):
-    """Encrypt an integer.
+    """Encrypt an integer or list of integers.
     Args:
         pk: public-key.
         size: size of polynomials.
