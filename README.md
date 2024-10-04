@@ -1,5 +1,5 @@
 # open-encrypt
-Full-stack encrypted messaging application using ring-LWE in PHP + SQL + Python.
+Full-stack encrypted messaging application using ring-LWE in Python + PHP + SQL.
 
 **NOTE**: This is a demo for educational purposes only. It is not meant for real-world use.
 
