@@ -1,5 +1,7 @@
 # open-encrypt
-Full stack, post-quantum, fully homomorphic encrypted messaging application using ring-LWE in PHP + SQL + Python.
+Full-stack encrypted messaging application using ring-LWE in PHP + SQL + Python.
+
+NOTE: This is a demo for educational purposes only. It is not meant for real-world use.
 
 RESOURCES:
 
