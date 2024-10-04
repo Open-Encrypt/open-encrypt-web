@@ -71,3 +71,16 @@ def gen_normal_poly(size):
         the coeff of x ^ i.
     """
     return np.int64(np.random.normal(0, 2, size=size))
+
+
+def inv_poly(a, modulus):
+  """
+  Additive inverse of polynomial a modulo q
+  """
+  return list(map(lambda x: -x % modulus, a))
+
+def sub_poly(a, b, modulus, poly_mod):
+  """
+  Form the difference polynomial a - b (mod modulus)
+  """
+  return polyadd(a, inv_poly(b, modulus), modulus, poly_mod)
