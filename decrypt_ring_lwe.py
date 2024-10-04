@@ -27,10 +27,10 @@ def decrypt(sk, size, q, t, poly_mod, ct):
     return [int(a) for a in decrypted_poly]
 
 if(len(argv) > 2):
-    #get the public key from the string and format as two arrays
+    #get the secret key from the string and format as array
     sk_string = argv[1]
     sk = np.int64([*sk_string])
-    #define the integers to be encrypted
+    #get the ciphertext to be decrypted
     ciphertext_string = argv[2]
     ciphertext_array = np.int64(ciphertext_string.split(','))
     num_bytes = len(ciphertext_array) // (2*n)
