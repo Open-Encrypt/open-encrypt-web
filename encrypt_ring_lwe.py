@@ -53,8 +53,8 @@ if(len(argv) > 2):
     #define the integers to be encrypted
     #note bytes are 8 bits, so message_int < 2^8 = t = plaintext modulus, which can be modified
     message = argv[2]
-    message_bytes = [format(x, 'b') for x in bytearray(message, 'utf-8')]
-    message_ints = [int(message_byte,2) for message_byte in message_bytes]
+    message_bytes = [format(x, 'b') for x in bytearray(message, 'utf-8')] #convert message to bytes
+    message_ints = [int(message_byte,2) for message_byte in message_bytes] #convert each byte to integer from binary
     message_blocks = []
     for i in range(0,len(message_ints),n):
         message_blocks.append(message_ints[i:i+n])
