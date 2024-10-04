@@ -1,9 +1,9 @@
 # open-encrypt
 Full-stack encrypted messaging application using ring-LWE in PHP + SQL + Python.
 
-NOTE: This is a demo for educational purposes only. It is not meant for real-world use.
+**NOTE**: This is a demo for educational purposes only. It is not meant for real-world use.
 
-RESOURCES:
+**RESOURCES**:
 
 - Original Python: https://blog.openmined.org/build-an-homomorphic-encryption-scheme-from-scratch-with-python/
 - ring-LWE notes: https://math.colorado.edu/~kstange/teaching-resources/crypto/RingLWE-notes.pdf
