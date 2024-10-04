@@ -12,7 +12,7 @@ def parameters():
     k = 2
     return (n,q,poly_mod,k)
 
-def add_vec(v0, v1, q):
+def add_vec(v0, v1, q, f):
   assert(len(v0) == len(v1)) # sizes need to be the same
 
   result = []

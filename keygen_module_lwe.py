@@ -21,7 +21,7 @@ def keygen(k, q, f):
     A = (np.random.random([k, k, n]) * q).astype(int) #note A \in R^{k x k}, each entry is a deg(f) list
     s = (np.random.random([k, n]) * 3).astype(int) - 1 #each coefficient is in {-1,0,+1}
     e = (np.random.random([k, n]) * 3).astype(int) - 1 #each coefficient is in {-1,0,+1}
-    t = add_vec(mul_mat_vec_simple(A, s, f, q), e, q) #form the vector A*s + e
+    t = add_vec(mul_mat_vec_simple(A, s, f, q), e, q, f) #form the vector A*s + e
 
     return (A,t), s
 
