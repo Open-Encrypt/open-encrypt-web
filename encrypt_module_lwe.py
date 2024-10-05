@@ -36,21 +36,24 @@ if(len(argv) > 2):
     #get public ket from argv[1] ...
     pk_string = argv[1]
     pk_list = pk_string.split(",")
-    A_list = np.int64(pk_list[:k*k*n])
-    t_list = np.int64(pk_list[k*k*n:])
-    A = np.reshape(A_list, (k, k, n)) #A is a matrix, a list of lists given as a single list of size k x k x n
-    t = np.reshape(t_list, (k, n)) #t is a vector, a list of lists given as a single list of size k x n
+    A_array = np.int64(pk_list[:k*k*n])
+    t_array = np.int64(pk_list[k*k*n:])
+    A = np.reshape(A_array, (k, k, n)) #A is a matrix, a list of lists given as a single list of size k x k x n
+    t = np.reshape(t_array, (k, n)) #t is a vector, a list of lists given as a single list of size k x n
     #get message from argv[2] ...
     message_string = argv[2]
+    #encode message as binary string
     message_binary = [int(bit) for byte in bytearray(message_string, 'utf-8') for bit in format(byte, '08b')]
+    #break message into blocks of size n
     num_blocks = len(message_binary) // n
     message_blocks = []
     for i in range(num_blocks):
         message_blocks.append(message_binary[i*n:(i+1)*n])
+    #TO-DO: use all blocks
     m_b = np.array(message_blocks[0])
     #encrypt message using public key
     u, v = encrypt(A, t, m_b, f, q, r, e_1, e_2)
-    #export the string
+    #export the ciphertext string
     uv_list = [a.tolist() for a in u] + [v.tolist()]
     uv_string = str(uv_list).replace("[","").replace("]","").replace(" ","")
     print(uv_string)
