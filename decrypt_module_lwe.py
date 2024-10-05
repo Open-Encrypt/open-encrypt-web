@@ -5,9 +5,20 @@ from sys import argv
 
 np.random.seed(0xdeadbeef)
 
+#get module-LWE parameters
 n, q, f, k = parameters()
 
 def decrypt(s, u, v, f, q):
+  """Decrypt a ciphertext (u,v)
+    Args:
+        s: secret key
+        u: first component of cipher text
+        v: second component of cipher text
+        f: polynomial modulus
+        q: modulus
+    Returns:
+        Decrypted message m_b.
+  """
   m_n = sub_poly(v, mul_vec_simple(s, u, f, q), q, f)
 
   half_q = int(q / 2 + 0.5)
@@ -24,10 +35,15 @@ def decrypt(s, u, v, f, q):
 if(len(argv) >  2):
     #get secret key from argv[1]
     sk_string = argv[1]
-    s = np.int64([*sk_string])
-    #get the ciphertext string
+    s_array = np.int64(sk_string.split(","))
+    s = np.reshape(s_array,(k,n))
+    #get the ciphertext string and recover u, v
     ciphertext_string = argv[2]
-    u, v = ...
+    ciphertext_list = ciphertext_string.split(",")
+    u_array = np.int64(ciphertext_list[:k*n])
+    v_array = np.int64(ciphertext_list[k*n:])
+    u = np.reshape(u_array, (k,n))
+    v = np.reshape(v_array, (n))
     #decrypt the ciphertext u, v with secret key s
     m_b = decrypt(s, u, v, f, q) 
     #export the decrypted message
