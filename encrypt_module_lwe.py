@@ -51,4 +51,6 @@ if(len(argv) > 2):
     #encrypt message using public key
     u, v = encrypt(A, t, m_b, f, q, r, e_1, e_2)
     #export the string
-    print(u, v)
+    uv_list = [a.tolist() for a in u] + [v.tolist()]
+    uv_string = str(uv_list).replace("[","").replace("]","").replace(" ","")
+    print(uv_string)

@@ -5,6 +5,7 @@ from module_lwe import parameters, add_vec, mul_mat_vec_simple
 
 np.random.seed(0xdeadbeef)
 
+#load module-LWE parameters
 n, q, f, k = parameters()
 
 def keygen(k, q, f):
@@ -25,7 +26,14 @@ def keygen(k, q, f):
 
     return (A,t), s
 
+#generate public, secret keys
 pk, sk = keygen(k,q,f)
 
-keys = {"secret":sk.tolist(), "public_A":pk[0].tolist(), "public_t":[a.tolist() for a in pk[1]]}
+#convert lists of lists, arrays, etc. to string of comma separated ints
+sk_string = str(sk.tolist()).replace("[","").replace("]","").replace(" ","")
+A_string = str(pk[0].tolist()).replace("[","").replace("]","").replace(" ","")
+t_string = str([a.tolist() for a in pk[1]]).replace("[","").replace("]","").replace(" ","")
+
+#export keys as json
+keys = {"secret":sk_string, "public_A":A_string, "public_t":t_string}
 print(json.dumps(keys))
