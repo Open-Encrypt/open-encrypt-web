@@ -29,7 +29,7 @@
     }
     //define a function which generates public and private keys
     function generate_keys(){
-        $command = escapeshellcmd('/home/jackson/open_encrypt/openencryptvenv/bin/python3 keygen.py');
+        $command = escapeshellcmd('/home/jackson/open_encrypt/openencryptvenv/bin/python3 keygen_ring_lwe.py');
         $json_string = shell_exec($command);
         try{
             $json_object = json_decode($json_string, true, 512, JSON_THROW_ON_ERROR);
@@ -41,13 +41,13 @@
     }
     //encrypt a message using the given public key
     function encrypt_message($public_key,$plaintext){
-        $command = escapeshellcmd('/home/jackson/open_encrypt/openencryptvenv/bin/python3 encrypt.py' . ' ' . $public_key . ' ' . $plaintext);
+        $command = escapeshellcmd('/home/jackson/open_encrypt/openencryptvenv/bin/python3 encrypt_ring_lwe.py' . ' ' . $public_key . ' ' . $plaintext);
         $encrypted_string = shell_exec($command);
         return $encrypted_string;
     }
     //decrypt a message using the secret key
     function decrypt_message($secret_key,$ciphertext){
-        $command = escapeshellcmd('/home/jackson/open_encrypt/openencryptvenv/bin/python3 decrypt.py' . ' ' . $secret_key . ' ' . $ciphertext);
+        $command = escapeshellcmd('/home/jackson/open_encrypt/openencryptvenv/bin/python3 decrypt_ring_lwe.py' . ' ' . $secret_key . ' ' . $ciphertext);
         $decrypted_string = shell_exec($command);
         return $decrypted_string;
     }
@@ -62,7 +62,7 @@
                 }
             }
             catch(Exception $e) {
-                echo "Error: " . $sql_insert . "<br>" . mysqli_error($conn);
+                echo "Error: " . $sql_select . "<br>" . mysqli_error($conn);
             }
         }
     }
@@ -230,7 +230,7 @@
             if (!$valid_recipient){
                 echo "Error: Invalid recipient.<br>";
             }
-            $valid_message = valid_input($message,40);
+            $valid_message = valid_input($message,240);
             if (!$valid_message){
                 echo "Error: Invalid message.<br>";
             }
@@ -271,7 +271,7 @@
     </form>
 
     <?php
-        //display all the unecrypted messages sent to the current user
+        //display all the encrypted messages sent to the current user
         if(isset($_SESSION['user']) && isset($_POST['view_messages'])){
 
             $username = $_SESSION['user'];

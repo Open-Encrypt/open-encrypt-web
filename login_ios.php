@@ -87,7 +87,7 @@ if(isset($data['password'])){
 //if both username and password are valid, login
 if ($valid_username && $valid_password){
 
-    // form the sql string with the username and hashed password to insert
+    // form the sql string with the username and hashed password to check
     $sql_check = "SELECT password FROM login_info WHERE username = '$username'";
     if ($result = mysqli_query($conn, $sql_check)) {
         $row = $result->fetch_assoc();
