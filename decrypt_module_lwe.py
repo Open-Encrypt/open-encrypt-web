@@ -57,4 +57,4 @@ if(len(argv) >  2):
     byte_chunks = [''.join(str(bit) for bit in message_binary[i:i+8]) for i in range(0, len(message_binary), 8)]
     # Convert each binary string back into a character
     message_string = ''.join([chr(int(byte, 2)) for byte in byte_chunks])
-    print(str(message_string).replace('[','').replace(']','').replace(' ',''))
+    print(message_string)
