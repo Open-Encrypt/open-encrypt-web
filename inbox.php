@@ -250,10 +250,8 @@
 <?php
     if(isset($_POST['view_keys']) && isset($_SESSION['user'])){
         $username = $_SESSION['user'];
-        echo fetch_public_key($username,$conn);
-        echo "<br>";
-        echo fetch_encryption_method($username,$conn);
-        echo "<br>";
+        echo "public_key: " . fetch_public_key($username,$conn) . "<br>";
+        echo "encryption_method: " . fetch_encryption_method($username,$conn) . "<br>";
     }
 ?>
 
