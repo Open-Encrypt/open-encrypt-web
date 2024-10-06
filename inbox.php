@@ -66,6 +66,21 @@
             }
         }
     }
+    //retrieve the encryption method from the database for the given username
+    function fetch_encryption_method($username,$conn){
+        if(username_exists($username,"public_keys",$conn)){
+            $sql_select = "SELECT method FROM `public_keys` WHERE `username` = '$username'";
+            try{
+                if ($result = mysqli_query($conn, $sql_select)) {
+                    $row = $result->fetch_assoc();
+                    return $row['method'];
+                }
+            }
+            catch(Exception $e) {
+                echo "Error: " . $sql_select . "<br>" . mysqli_error($conn);
+            }
+        }
+    }
     //function to check whether a username exists in login_info table in database users
     function username_exists($username,$table,$conn){
         $sql_check = "SELECT COUNT(*) FROM $table WHERE username = '$username'";
@@ -156,10 +171,6 @@
 
     <form method="post">
         <input type="submit" name="save_keys" class="button" value="Save Public Key" />
-        <input type="radio" id="ring_lwe" name="encryption_method" value="ring_lwe">
-        <label for="ring_lwe">ring-LWE</label>
-        <input type="radio" id="module_lwe" name="encryption_method" value="module_lwe">
-        <label for="module_lwe">module-LWE</label>
     </form>
 
     <form method="post">
@@ -192,16 +203,18 @@
             echo $public_key;
             echo "<br><br>";
 
+            //set the public key and encryption method as session variables to be used for "save keys"
             $_SESSION['public_key'] = $public_key;
+            $_SESSION['encryption_method'] = $encryption_method;
         }
     ?>
 
 <?php
     //save public key
-    if(isset($_POST['save_keys']) && isset($_SESSION['user']) && isset($_SESSION['public_key']) && isset($_POST['encryption_method'])){
+    if(isset($_POST['save_keys']) && isset($_SESSION['user']) && isset($_SESSION['public_key']) && isset($_SESSION['encryption_method'])){
         $username = $_SESSION['user'];
         $public_key = $_SESSION['public_key'];
-        $encryption_method = $_POST['encryption_method'];
+        $encryption_method = $_SESSION['encryption_method'];
         // form the sql string to insert the public_key into table public_keys
         if(!username_exists($username,"public_keys",$conn)){
             $sql_insert = "INSERT INTO `public_keys` (`username`, `public_key`, `method`) VALUES ('$username', '$public_key', '$encryption_method')";
@@ -210,6 +223,7 @@
                 if (mysqli_query($conn, $sql_insert)) {
                     echo "Success: $encryption_method public key inserted into SQL database for $username.<br>";
                     unset($_SESSION['public_key']);
+                    unset($_SESSION['encryption_method']);
                 }
             }
             catch(Exception $e) {
@@ -223,6 +237,7 @@
                 if (mysqli_query($conn, $sql_update)) {
                     echo "Success: $encryption_method public key updated for $username.<br>";
                     unset($_SESSION['public_key']);
+                    unset($_SESSION['encryption_method']);
                 }
             }
             catch(Exception $e) {
@@ -236,6 +251,7 @@
     if(isset($_POST['view_keys']) && isset($_SESSION['user'])){
         $username = $_SESSION['user'];
         echo fetch_public_key($username,$conn);
+        echo fetch_encryption_method($username,$conn);
     }
 ?>
 
