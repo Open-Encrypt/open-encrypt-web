@@ -196,10 +196,10 @@
                 $public_key_t = implode(',', $json_keys["public_t"]);
                 $public_key = $public_key_A . ',' . $public_key_t;
             }
-            echo "Secret key: This is private and should be written down and stored safely. It is used to decrypt messages you've received.<br><br>";
+            echo "Secret key ($encryption_method): This is private and should be written down and stored safely. It is used to decrypt messages you've received.<br><br>";
             echo $secret_key;
             echo "<br><br>";
-            echo "Public key: This is public and is stored on the server. It is used for encrypting messages sent to you.<br><br>";
+            echo "Public key ($encryption_method): This is public and is stored on the server. It is used for encrypting messages sent to you.<br><br>";
             echo $public_key;
             echo "<br><br>";
 
