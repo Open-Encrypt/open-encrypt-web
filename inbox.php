@@ -40,14 +40,14 @@
         return $json_object;
     }
     //encrypt a message using the given public key
-    function encrypt_message($public_key,$plaintext){
-        $command = escapeshellcmd('/home/jackson/open_encrypt/openencryptvenv/bin/python3 encrypt_ring_lwe.py' . ' ' . $public_key . ' ' . $plaintext);
+    function encrypt_message($public_key,$plaintext,$encryption_method="ring_lwe"){
+        $command = escapeshellcmd('/home/jackson/open_encrypt/openencryptvenv/bin/python3 encrypt_' . $encryption_method . '.py' . ' ' . $public_key . ' ' . $plaintext);
         $encrypted_string = shell_exec($command);
         return $encrypted_string;
     }
     //decrypt a message using the secret key
-    function decrypt_message($secret_key,$ciphertext){
-        $command = escapeshellcmd('/home/jackson/open_encrypt/openencryptvenv/bin/python3 decrypt_ring_lwe.py' . ' ' . $secret_key . ' ' . $ciphertext);
+    function decrypt_message($secret_key,$ciphertext,$encryption_method="ring_lwe"){
+        $command = escapeshellcmd('/home/jackson/open_encrypt/openencryptvenv/bin/python3 decrypt_' . $encryption_method . '.py' . ' ' . $secret_key . ' ' . $ciphertext);
         $decrypted_string = shell_exec($command);
         return $decrypted_string;
     }
@@ -148,14 +148,18 @@
 
     <form method="post">
         <input type="submit" name="key_gen" class="button" value="Generate Keys" />
-        <input type="radio" id="ring_lwe" name="encryption_method" value="ring_lwe" checked>
+        <input type="radio" id="ring_lwe" name="encryption_method" value="ring_lwe">
         <label for="ring_lwe">ring-LWE</label>
         <input type="radio" id="module_lwe" name="encryption_method" value="module_lwe">
         <label for="module_lwe">module-LWE</label>
     </form>
 
     <form method="post">
-        <input type="submit" name="save_keys" class="button" value="Save Public Key" /> 
+        <input type="submit" name="save_keys" class="button" value="Save Public Key" />
+        <input type="radio" id="ring_lwe" name="encryption_method" value="ring_lwe">
+        <label for="ring_lwe">ring-LWE</label>
+        <input type="radio" id="module_lwe" name="encryption_method" value="module_lwe">
+        <label for="module_lwe">module-LWE</label>
     </form>
 
     <form method="post">
@@ -193,16 +197,18 @@
     ?>
 
 <?php
-    if(isset($_POST['save_keys']) && isset($_SESSION['user']) && isset($_SESSION['public_key'])){
+    //save public key
+    if(isset($_POST['save_keys']) && isset($_SESSION['user']) && isset($_SESSION['public_key']) && isset($_POST['encryption_method'])){
         $username = $_SESSION['user'];
         $public_key = $_SESSION['public_key'];
+        $encryption_method = $_POST['encryption_method'];
         // form the sql string to insert the public_key into table public_keys
         if(!username_exists($username,"public_keys",$conn)){
-            $sql_insert = "INSERT INTO `public_keys` (`username`, `public_key`) VALUES ('$username', '$public_key')";
+            $sql_insert = "INSERT INTO `public_keys` (`username`, `public_key`, `method`) VALUES ('$username', '$public_key', '$encryption_method')";
             echo "Trying SQL insertion...";
             try{
                 if (mysqli_query($conn, $sql_insert)) {
-                    echo "Success: public key inserted into SQL database for $username.<br>";
+                    echo "Success: $encryption_method public key inserted into SQL database for $username.<br>";
                     unset($_SESSION['public_key']);
                 }
             }
@@ -212,10 +218,10 @@
         }
         else{
             echo "Public key already exists for $username. Updating public key...<br>";
-            $sql_update = "UPDATE public_keys SET public_key = '$public_key' WHERE username = '$username'";
+            $sql_update = "UPDATE public_keys SET public_key = '$public_key', method = '$encryption_method' WHERE username = '$username'";
             try{
                 if (mysqli_query($conn, $sql_update)) {
-                    echo "Success: public key updated for $username.<br>";
+                    echo "Success: $encryption_method public key updated for $username.<br>";
                     unset($_SESSION['public_key']);
                 }
             }
