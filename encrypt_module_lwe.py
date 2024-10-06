@@ -28,6 +28,7 @@ def encrypt(A, t, m_b, f, q, r, e_1, e_2):
 
     return u, v
 
+#generate random elements r, e_1, e_2 with coeffs in {-1,0,+1}
 r = (np.random.random([k, n]) * 3).astype(int) - 1
 e_1 = (np.random.random([k, n]) * 3).astype(int) - 1
 e_2 = (np.random.random([n]) * 3).astype(int) - 1
