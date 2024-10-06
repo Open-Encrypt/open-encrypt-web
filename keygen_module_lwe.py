@@ -3,7 +3,7 @@ import random
 import json
 from module_lwe import parameters, add_vec, mul_mat_vec_simple
 
-np.random.seed(0xdeadbeef)
+#np.random.seed(0xdeadbeef)
 
 #load module-LWE parameters
 n, q, f, k = parameters()
@@ -29,11 +29,6 @@ def keygen(k, q, f):
 #generate public, secret keys
 pk, sk = keygen(k,q,f)
 
-#convert lists of lists, arrays, etc. to string of comma separated ints
-sk_string = str(sk.tolist()).replace("[","").replace("]","").replace(" ","")
-A_string = str(pk[0].tolist()).replace("[","").replace("]","").replace(" ","")
-t_string = str([a.tolist() for a in pk[1]]).replace("[","").replace("]","").replace(" ","")
-
-#export keys as json
-keys = {"secret":sk_string, "public_A":A_string, "public_t":t_string}
+#reshape keys to flat lists and export as json
+keys = {"secret":np.reshape(sk,-1).tolist(), "public_A":np.reshape(pk[0], -1).tolist(), "public_t":np.reshape(pk[1],-1).tolist()}
 print(json.dumps(keys))
