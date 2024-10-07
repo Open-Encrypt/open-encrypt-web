@@ -105,31 +105,39 @@
             return false;
         }
         // To check that username only contains alphabets, numbers, and underscores 
-        elseif (!preg_match("/^[a-zA-Z0-9_]*$/", $user_input)) {
+        if (!preg_match("/^[a-zA-Z0-9_]*$/", $user_input)) {
             return false;
         }
-        elseif (strlen($user_input) > $max_len) {
+        if (strlen($user_input) > $max_len) {
             return false;
         }
-        else{
-            return true;
-        }
+        return true;
     }
     // validate user input from forms
-    function valid_secret_key($secret_key){
+    function valid_secret_key($secret_key,$encryption_method="ring_lwe"){
+        //check if secret key is empty string
         if (empty($secret_key)) {
             return false;
         }
-        // To check that username only contains alphabets, numbers, and underscores 
-        elseif (!preg_match("/^[0-1]*$/", $secret_key)) {
-            return false;
+        //for ring-LWE, check secret key only contains characters 0 or 1, i.e. binary string
+        if($encryption_method == "ring_lwe"){
+            if (!preg_match("/^[0-1]*$/", $secret_key)) {
+                return false;
+            }
+            if (strlen($secret_key) > 16) {
+                return false;
+            }
         }
-        elseif (strlen($secret_key) > 16) {
-            return false;
+        //for module-LWE, check secret key only contains characters in {'-',',','0','1'}, i.e. ternary array
+        if($encryption_method == "module_lwe"){
+            if(!preg_match("/^[-01,]*$/", $secret_key)) {
+                return false;
+            }
+            if (strlen($secret_key) > 20) {
+                return false;
+            }
         }
-        else{
-            return true;
-        }
+        return true;
     }
 ?>
 <html>
@@ -248,6 +256,7 @@
 ?>
 
 <?php
+    //view public key and encryption method
     if(isset($_POST['view_keys']) && isset($_SESSION['user'])){
         $username = $_SESSION['user'];
         echo "public_key: " . fetch_public_key($username,$conn) . "<br>";
@@ -256,11 +265,15 @@
 ?>
 
     <?php
+        //send message
         if (isset($_SESSION['user']) and isset($_POST['to']) and isset($_POST['message'])){
             //set the variables with message data and metadata
             $from_username = $_SESSION['user'];
             $to_username = $_POST['to'];
             $message = $_POST['message'];
+
+            //get the encryption method used by $to_username
+            $encryption_method = fetch_encryption_method($to_username,$conn);
 
             $valid_recipient = valid_input($to_username,14);
             if (!$valid_recipient){
@@ -273,7 +286,7 @@
             
             if(username_exists($to_username,"login_info",$conn) and $valid_recipient and $valid_message){
                 $public_key = fetch_public_key($to_username,$conn);
-                $encrypted_message = encrypt_message($public_key,$message);
+                $encrypted_message = encrypt_message($public_key,$message,$encryption_method);
                 // form the sql string to insert the message into the tables messages
                 $sql_insert = "INSERT INTO `messages` (`from`, `to`, `message`) VALUES ('$from_username', '$to_username','$encrypted_message')";
                 echo "Trying SQL insertion...";
@@ -335,8 +348,9 @@
 
             $username = $_SESSION['user'];
             $secret_key = $_POST['secret_key'];
+            $encryption_method = fetch_encryption_method($username,$conn);
 
-            if (!valid_secret_key($secret_key)){
+            if (!valid_secret_key($secret_key,$encryption_method)){
                 echo "Error: Invalid secret key.";
             }
             else{
@@ -347,7 +361,7 @@
                         echo "Trying to decrypt messages...<br><br>";
                         while($row = $result->fetch_assoc()){
                             echo $row['from'] . "-->" . $row['to'] . ": ";
-                            $decrypted_message = decrypt_message($secret_key,$row['message']);
+                            $decrypted_message = decrypt_message($secret_key,$row['message'],$encryption_method);
                             echo $decrypted_message;
                             echo "<br>";
                         }
