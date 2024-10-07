@@ -369,6 +369,9 @@
                                 $decrypted_message = decrypt_message($secret_key,$row['message'],$row['method']);
                                 echo $decrypted_message;
                             }
+                            else{
+                                echo "[different encryption method]";
+                            }
                             echo "<br>";
                         }
                     }
