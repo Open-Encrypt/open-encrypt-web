@@ -8,8 +8,8 @@ Full-stack encrypted messaging application using lattice-based methods in Python
 **RESOURCES**:
 
 - ring-LWE in Python: https://blog.openmined.org/build-an-homomorphic-encryption-scheme-from-scratch-with-python/
-- module-LWE in Python: https://cryptographycaffe.sandboxaq.com/posts/kyber-01/
 - ring-LWE notes: https://math.colorado.edu/~kstange/teaching-resources/crypto/RingLWE-notes.pdf
+- module-LWE in Python: https://cryptographycaffe.sandboxaq.com/posts/kyber-01/
 - NIST Post-Quantum: https://csrc.nist.gov/projects/post-quantum-cryptography
 - Red Hat Post-Quantum/Lattices: https://www.redhat.com/en/blog/post-quantum-cryptography-lattice-based-cryptography
 - Latticed-based cryptography: https://thelatticeclub.com
