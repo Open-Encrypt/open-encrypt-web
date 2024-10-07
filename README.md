@@ -22,8 +22,8 @@ Full-stack encrypted messaging application using lattice-based methods in Python
 - Passwords are hashed using standard hashing. 
 - Secure, random tokens stored for user sessions.
 - Messages are stored encrypted. The inflation ratio is ~13.7 for ring-LWE.
-- For ring-LWE, public keys are a single string representing two (cyclotomic, modular) polynomials as `int` arrays.
-- For module-LWE, public keys are a single string representing a random matrix A and vector t with (cyclotomic, modular) polynomial coefficients.
+- For ring-LWE, public keys are a `string` representing two (cyclotomic, modular) polynomials as `int` arrays.
+- For module-LWE, public keys are a `string` representing a random matrix `A` and vector `t` with (cyclotomic, modular) polynomial coefficients.
 
 **PHP**:
 
