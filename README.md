@@ -18,28 +18,12 @@ Full-stack encrypted messaging application using lattice-based methods in Python
 
 **SQL**: 
 
-Three tables are required to store login_info, messages, and public_keys.
-
-_login_info_:
-  - username CHAR(14)
-  - password CHAR(60)
-  - token CHAR(32)
-
-Passwords are hashed using standard hashing. Secure, random tokens stored for user sessions.
-
-_messages_:
-  - from CHAR(14)
-  - to CHAR(14)
-  - message VARCHAR(8000)
-
-Messages are stored encrypted. The inflation ratio is ~13.7.
-
-_public_keys_:
-  - username CHAR(14)
-  - public_key CHAR(192)
-  - method VARCHAR(16)
-
-Public keys are a single string representing two (reduced cyclotomic) polynomials which are each arrays of `int`s.
+- Three tables are required to store login_info, messages, and public_keys.
+- Passwords are hashed using standard hashing. 
+- Secure, random tokens stored for user sessions.
+- Messages are stored encrypted. The inflation ratio is ~13.7 for ring-LWE.
+- For ring-LWE, public keys are a single string representing two (cyclotomic, modular) polynomials as `int` arrays.
+- For module-LWE, public keys are a single string representing a random matrix A and vector t with (cyclotomic, modular) polynomial coefficients.
 
 **PHP**:
 
