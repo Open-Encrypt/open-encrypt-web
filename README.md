@@ -37,6 +37,7 @@ Messages are stored encrypted. The inflation ratio is ~13.7.
 _public_keys_:
   - username CHAR(14)
   - public_key CHAR(192)
+  - method VARCHAR(16)
 
 Public keys are a single string representing two (reduced cyclotomic) polynomials which are each arrays of `int`s.
 
