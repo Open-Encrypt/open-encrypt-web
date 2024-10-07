@@ -187,7 +187,7 @@
 
     <?php
         //if the "key generation" button is pressed and there is a valid user session, generate public/private key pair
-        if (isset($_POST['key_gen']) && isset($_SESSION['user']) &&isset($_POST['encryption_method'])){
+        if (isset($_POST['key_gen']) && isset($_SESSION['user']) && isset($_POST['encryption_method'])){
 
             $encryption_method = $_POST['encryption_method'];
             $json_keys = generate_keys($encryption_method);
@@ -288,11 +288,11 @@
                 $public_key = fetch_public_key($to_username,$conn);
                 $encrypted_message = encrypt_message($public_key,$message,$encryption_method);
                 // form the sql string to insert the message into the tables messages
-                $sql_insert = "INSERT INTO `messages` (`from`, `to`, `message`) VALUES ('$from_username', '$to_username','$encrypted_message')";
+                $sql_insert = "INSERT INTO `messages` (`from`, `to`, `message`,`method`) VALUES ('$from_username', '$to_username','$encrypted_message','$encryption_method')";
                 echo "Trying SQL insertion...";
                 try{
                     if (mysqli_query($conn, $sql_insert)) {
-                        echo "Success: message sent from $from_username to $to_username.<br>";
+                        echo "Success: message sent from $from_username to $to_username using $encryption_method.<br>";
                     }
                 }
                 catch(Exception $e) {
@@ -312,7 +312,11 @@
     <form method="post">
         <label for="secret_key">Secret Key:</label>
         <input type="text" id="secret_key" name="secret_key">
-        <input type="submit" name="decrypt_messages" class="button" value="Decrypt Messages" /> 
+        <input type="submit" name="decrypt_messages" class="button" value="Decrypt Messages" />
+        <input type="radio" id="ring_lwe" name="encryption_method" value="ring_lwe">
+        <label for="ring_lwe">ring-LWE</label>
+        <input type="radio" id="module_lwe" name="encryption_method" value="module_lwe">
+        <label for="module_lwe">module-LWE</label>
     </form>
 
     <form method="post">
@@ -330,7 +334,7 @@
                 if ($result = mysqli_query($conn, $sql_get_messages)) {
                     echo "retrieved messages successfully.<br><br>";
                     while($row = $result->fetch_assoc()){
-                        echo $row['from'] . "-->" . $row['to'] . ": ";
+                        echo $row['from'] . "-->" . $row['to'] . ' (' . $row['method'] . "): ";
                         echo $row['message'];
                         echo "<br>";
                     }
@@ -344,13 +348,13 @@
 
 <?php   
         //decrypt messages sent to the current user using the provided secret key
-        if(isset($_SESSION['user']) && isset($_POST['decrypt_messages']) && isset($_POST['secret_key'])){
+        if(isset($_SESSION['user']) && isset($_POST['decrypt_messages']) && isset($_POST['secret_key']) && isset($_POST['encryption_method'])){
 
             $username = $_SESSION['user'];
             $secret_key = $_POST['secret_key'];
-            $encryption_method = fetch_encryption_method($username,$conn);
+            $secret_key_method = $_POST['encryption_method'];
 
-            if (!valid_secret_key($secret_key,$encryption_method)){
+            if (!valid_secret_key($secret_key,$secret_key_method)){
                 echo "Error: Invalid secret key.";
             }
             else{
@@ -361,8 +365,10 @@
                         echo "Trying to decrypt messages...<br><br>";
                         while($row = $result->fetch_assoc()){
                             echo $row['from'] . "-->" . $row['to'] . ": ";
-                            $decrypted_message = decrypt_message($secret_key,$row['message'],$encryption_method);
-                            echo $decrypted_message;
+                            if($secret_key_method == $row['method']){
+                                $decrypted_message = decrypt_message($secret_key,$row['message'],$row['method']);
+                                echo $decrypted_message;
+                            }
                             echo "<br>";
                         }
                     }
