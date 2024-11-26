@@ -23,5 +23,5 @@ def keygen(size, modulus, poly_mod):
 n, q, t, poly_mod = parameters()
 # Keygen
 pk, sk = keygen(n, q, poly_mod)
-keys = {"secret":sk.tolist(), "public_b":pk[0].tolist(), "public_a":pk[1].tolist()}
+keys = {"secret_key":str(sk.tolist()).replace(" ","").replace("[","").replace("]","").replace(",",""), "public_key":str(pk[0].tolist()+pk[1].tolist()).replace(" ","").replace("[","").replace("]","")}
 print(json.dumps(keys))
