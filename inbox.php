@@ -65,7 +65,7 @@
             . escapeshellarg(trim($secret_key)) 
             . " " 
             . escapeshellarg(trim($ciphertext))
-        )
+        );
         $decrypted_string = shell_exec($command);
         return $decrypted_string;
     }
