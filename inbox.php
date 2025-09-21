@@ -1,6 +1,7 @@
 <?php
-    error_reporting(E_ALL);
     ini_set('display_errors', '1');
+    ini_set('display_startup_errors', 1);
+    error_reporting(E_ALL);
     // form a connection to the SQL database
     include_once 'db_config.php';
     session_start();
@@ -44,20 +45,32 @@
     function encrypt_message($public_key,$plaintext,$encryption_method="ring_lwe"){
         $binary_path = "/var/www/open-encrypt.com/html/";
         $command = escapeshellcmd(
-            $binary_path . ($encryption_method == "ring_lwe" ? "ring-lwe-v0.1.7" : "module-lwe-v0.1.4") 
-            . " encrypt " . escapeshellarg($public_key) . " " . escapeshellarg($plaintext)
+            $binary_path 
+            . ($encryption_method == "ring_lwe" ? "ring-lwe-v0.1.7" : "module-lwe-v0.1.4") 
+            . " encrypt " 
+            . escapeshellarg($public_key) 
+            . " " 
+            . escapeshellarg($plaintext)
         );
         $encrypted_string = shell_exec($command);
         return $encrypted_string;
     }
     //decrypt a message using the secret key
     function decrypt_message($secret_key,$ciphertext,$encryption_method="ring_lwe"){
+        echo "secret key: $secret_key<br>";
+        echo "ciphertext: $ciphertext<br>";
         $binary_path = "/var/www/open-encrypt.com/html/";
         $command = escapeshellcmd(
-            $binary_path . ($encryption_method == "ring_lwe" ? "ring-lwe-v0.1.7" : "module-lwe-v0.1.4") 
-            . " decrypt " . escapeshellarg($secret_key) . " " . escapeshellarg($ciphertext)
+            $binary_path 
+            . ($encryption_method == "ring_lwe" ? "ring-lwe-v0.1.7" : "module-lwe-v0.1.4") 
+            . " decrypt " 
+            . escapeshellarg($secret_key) 
+            . " " 
+            . escapeshellarg($ciphertext)
+            . " 2>&1"  // redirect stderr to stdout
         );
         $decrypted_string = shell_exec($command);
+        echo "decrypted string: <$decrypted_string><br>";
         return $decrypted_string;
     }
     //retrieve the public key from the database for the given username
