@@ -67,8 +67,8 @@
             . escapeshellarg($secret_key) 
             . " " 
             . escapeshellarg($ciphertext)
-            . " 2>&1"  // redirect stderr to stdout
-        );
+        ) . " 2>&1";  // redirect stderr to stdout
+        echo "command: $command<br>";
         $decrypted_string = shell_exec($command);
         echo "decrypted string: <$decrypted_string><br>";
         return $decrypted_string;
