@@ -57,8 +57,6 @@
     }
     //decrypt a message using the secret key
     function decrypt_message($secret_key,$ciphertext,$encryption_method="ring_lwe"){
-        echo "secret key: $secret_key<br>";
-        echo "ciphertext: $ciphertext<br>";
         $binary_path = "/var/www/open-encrypt.com/html/";
         $command = escapeshellcmd(
             $binary_path 
@@ -67,13 +65,8 @@
             . escapeshellarg(trim($secret_key)) 
             . " " 
             . escapeshellarg(trim($ciphertext))
-        ) . " 2>&1";  // redirect stderr to stdout
-        $index = 21856;
-        $byte = $ciphertext[$index];
-        echo "Byte at index $index: " . ord($byte) . " (char: '$byte')";
-        echo "command: $command<br>";
+        )
         $decrypted_string = shell_exec($command);
-        echo "decrypted string: <$decrypted_string><br>";
         return $decrypted_string;
     }
     //retrieve the public key from the database for the given username
