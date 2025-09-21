@@ -64,10 +64,13 @@
             $binary_path 
             . ($encryption_method == "ring_lwe" ? "ring-lwe-v0.1.7" : "module-lwe-v0.1.4") 
             . " decrypt " 
-            . escapeshellarg($secret_key) 
+            . escapeshellarg(trim($secret_key)) 
             . " " 
-            . escapeshellarg($ciphertext)
+            . escapeshellarg(trim($ciphertext))
         ) . " 2>&1";  // redirect stderr to stdout
+        $index = 21856;
+        $byte = $ciphertext[$index];
+        echo "Byte at index $index: " . ord($byte) . " (char: '$byte')";
         echo "command: $command<br>";
         $decrypted_string = shell_exec($command);
         echo "decrypted string: <$decrypted_string><br>";
