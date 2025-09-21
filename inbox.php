@@ -202,12 +202,12 @@
             $json_keys = generate_keys($encryption_method);
 
             if($encryption_method == "ring_lwe"){
-                $secret_key = $json_keys["secret"];
-                $public_key = $json_keys["public"];
+                $secret_key = trim($json_keys["secret"]);
+                $public_key = trim($json_keys["public"]);
             }
             if($encryption_method == "module_lwe"){
-                $secret_key = $json_keys["secret"];
-                $public_key = $json_keys["public"];
+                $secret_key = trim($json_keys["secret"]);
+                $public_key = trim($json_keys["public"]);
             }
             echo "Secret key ($encryption_method): This is private and should be written down and stored safely. It is used to decrypt messages you've received.<br><br>";
             echo $secret_key;
