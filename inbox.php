@@ -29,7 +29,8 @@
     }
     //define a function which generates public and private keys
     function generate_keys($encryption_method = "ring_lwe"){
-        $command = escapeshellcmd('/home/jackson/open_encrypt/openencryptvenv/bin/python3 keygen_' . $encryption_method . '.py');
+        $binary_path = "/var/www/open-encrypt.com/html/";
+        $command = escapeshellcmd($binary_path . ($encryption_method == "ring_lwe" ? "ring-lwe-v0.1.7" : "module-lwe-v0.1.4") . " keygen");
         $json_string = shell_exec($command);
         try{
             $json_object = json_decode($json_string, true, 512, JSON_THROW_ON_ERROR);
@@ -41,13 +42,21 @@
     }
     //encrypt a message using the given public key
     function encrypt_message($public_key,$plaintext,$encryption_method="ring_lwe"){
-        $command = escapeshellcmd('/home/jackson/open_encrypt/openencryptvenv/bin/python3 encrypt_' . $encryption_method . '.py' . ' ' . $public_key . ' ' . $plaintext);
+        $binary_path = "/var/www/open-encrypt.com/html/";
+        $command = escapeshellcmd(
+            $binary_path . ($encryption_method == "ring_lwe" ? "ring-lwe-v0.1.7" : "module-lwe-v0.1.4") 
+            . " encrypt " . escapeshellarg($public_key) . " " . escapeshellarg($plaintext)
+        );
         $encrypted_string = shell_exec($command);
         return $encrypted_string;
     }
     //decrypt a message using the secret key
     function decrypt_message($secret_key,$ciphertext,$encryption_method="ring_lwe"){
-        $command = escapeshellcmd('/home/jackson/open_encrypt/openencryptvenv/bin/python3 decrypt_' . $encryption_method . '.py' . ' ' . $secret_key . ' ' . $ciphertext);
+        $binary_path = "/var/www/open-encrypt.com/html/";
+        $command = escapeshellcmd(
+            $binary_path . ($encryption_method == "ring_lwe" ? "ring-lwe-v0.1.7" : "module-lwe-v0.1.4") 
+            . " decrypt " . escapeshellarg($secret_key) . " " . escapeshellarg($ciphertext)
+        );
         $decrypted_string = shell_exec($command);
         return $decrypted_string;
     }
