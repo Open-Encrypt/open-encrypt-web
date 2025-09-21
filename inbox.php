@@ -123,29 +123,25 @@
         return true;
     }
     // validate user input from forms
-    function valid_secret_key($secret_key,$encryption_method="ring_lwe"){
-        //check if secret key is empty string
+    function valid_secret_key($secret_key, $encryption_method = "ring_lwe") {
+        // check if secret key is empty
         if (empty($secret_key)) {
             return false;
         }
-        //for ring-LWE, check secret key only contains characters 0 or 1, i.e. binary string
-        if($encryption_method == "ring_lwe"){
-            if (!preg_match("/^[0-1]*$/", $secret_key)) {
-                return false;
-            }
-            if (strlen($secret_key) > 16) {
-                return false;
-            }
+
+        // check if it's a valid base64 string
+        if (base64_encode(base64_decode($secret_key, true)) !== $secret_key) {
+            return false;
         }
-        //for module-LWE, check secret key only contains characters in {'-',',','0','1'}, i.e. ternary array
-        if($encryption_method == "module_lwe"){
-            if(!preg_match("/^[-01,]*$/", $secret_key)) {
-                return false;
-            }
-            if (strlen($secret_key) > 20) {
-                return false;
-            }
+
+        // optional: enforce max length depending on method
+        if ($encryption_method === "ring_lwe" && strlen($secret_key) > 10936) {
+            return false;
         }
+        if ($encryption_method === "module_lwe" && strlen($secret_key) > 43704) {
+            return false;
+        }
+
         return true;
     }
 ?>
