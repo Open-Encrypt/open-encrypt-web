@@ -48,7 +48,7 @@
             $binary_path 
             . ($encryption_method == "ring_lwe" ? "ring-lwe-v0.1.7" : "module-lwe-v0.1.4") 
             . " encrypt " 
-            . escapeshellarg(trim($public_key)) 
+            . escapeshellarg(trim($public_key))
             . " " 
             . escapeshellarg(trim($plaintext))
         ) . " 2>&1"; // Capture stderr as well;
