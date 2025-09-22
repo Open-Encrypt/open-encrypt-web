@@ -44,6 +44,7 @@
     //encrypt a message using the given public key
     function encrypt_message($public_key,$plaintext,$encryption_method="ring_lwe"){
         $binary_path = "/var/www/open-encrypt.com/html/";
+        $tmpfile = file_put_contents(tempnam(sys_get_temp_dir(), 'pubkey_'), $public_key);
         $command = escapeshellcmd(
             $binary_path 
             . ($encryption_method == "ring_lwe" ? "ring-lwe-v0.1.7" : "module-lwe-v0.1.4") 
@@ -51,7 +52,7 @@
             . escapeshellarg(trim($public_key))
             . " " 
             . escapeshellarg(trim($plaintext))
-        ) . " 2>&1"; // Capture stderr as well;
+        ); // Capture stderr as well;
         $encrypted_string = shell_exec($command);
         return $encrypted_string;
     }
@@ -76,7 +77,8 @@
             try{
                 if ($result = mysqli_query($conn, $sql_select)) {
                     $row = $result->fetch_assoc();
-                    return $row['public_key'];
+                    $public_key = $row['public_key'];
+                    return $public_key;
                 }
             }
             catch(Exception $e) {
@@ -148,6 +150,32 @@
             return false;
         }
         if ($encryption_method === "module_lwe" && strlen($secret_key) > 43704) {
+            return false;
+        }
+
+        return true;
+    }
+    // validate user input for public keys
+    function valid_public_key($public_key, $encryption_method = "ring_lwe") {
+        // check if public key is empty
+        if (empty($public_key)) {
+            echo "Error: " . "public key is empty.";
+            return false;
+        }
+
+        // check if it's a valid base64 string
+        if (base64_encode(base64_decode($public_key, true)) !== $public_key) {
+            echo "Error: " . "public key is not valid base64 string.";
+            return false;
+        }
+
+        // optional: enforce max length depending on method
+        if ($encryption_method === "ring_lwe" && strlen($public_key) > 21856) { // adjust size as needed
+            echo "Error: " . "public key exceeds maximum length for ring_lwe.";
+            return false;
+        }
+        if ($encryption_method === "module_lwe" && strlen($public_key) > 393228) {
+            echo "Error: " . "public key exceeds maximum length for module_lwe.";
             return false;
         }
 
@@ -233,6 +261,7 @@
         $username = $_SESSION['user'];
         $public_key = $_SESSION['public_key'];
         $encryption_method = $_SESSION['encryption_method'];
+        valid_public_key($public_key, $encryption_method);
         // form the sql string to insert the public_key into table public_keys
         if(!username_exists($username,"public_keys",$conn)){
             $sql_insert = "INSERT INTO `public_keys` (`username`, `public_key`, `method`) VALUES ('$username', '$public_key', '$encryption_method')";
@@ -269,8 +298,12 @@
     //view public key and encryption method
     if(isset($_POST['view_keys']) && isset($_SESSION['user'])){
         $username = $_SESSION['user'];
-        echo "public_key: " . fetch_public_key($username,$conn) . "<br>";
-        echo "encryption_method: " . fetch_encryption_method($username,$conn) . "<br>";
+        $public_key = fetch_public_key($username,$conn);
+        $encryption_method = fetch_encryption_method($username,$conn);
+        $is_valid = valid_public_key($public_key, $encryption_method);
+        echo "is_valid: " . ($is_valid ? "true" : "false") . "<br>";
+        echo "public_key: " . $public_key . "<br>";
+        echo "encryption_method: " . $encryption_method . "<br>";
     }
 ?>
 
