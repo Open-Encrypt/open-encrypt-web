@@ -52,7 +52,7 @@
             . escapeshellarg(trim($public_key))
             . " " 
             . escapeshellarg(trim($plaintext))
-        ); // Capture stderr as well;
+        );
         $encrypted_string = shell_exec($command);
         return $encrypted_string;
     }
