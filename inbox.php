@@ -47,7 +47,8 @@
         $command = escapeshellcmd(
             $binary_path 
             . ($encryption_method == "ring_lwe" ? "ring-lwe-v0.1.8" : "module-lwe-v0.1.5") 
-            . " encrypt " . "--pubkey "
+            . " encrypt " 
+            . "--pubkey "
             . escapeshellarg(trim($public_key))
             . " " 
             . escapeshellarg(trim($plaintext))
@@ -62,7 +63,8 @@
         $command = escapeshellcmd(
             $binary_path 
             . ($encryption_method == "ring_lwe" ? "ring-lwe-v0.1.8" : "module-lwe-v0.1.5") 
-            . " decrypt " 
+            . " decrypt "
+            . "--secret "
             . escapeshellarg(trim($secret_key)) 
             . " " 
             . escapeshellarg(trim($ciphertext))
