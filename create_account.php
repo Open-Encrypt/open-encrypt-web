@@ -69,11 +69,11 @@ if (empty($password)) {
     echo "Invalid password: cannot be blank.<br>";
 }
 // To check that password only contains alphabets, numbers, and underscores 
-elseif (!preg_match("/^[a-zA-Z0-9_]*$/", $password)) {
-    echo "Invalid password: only letters, numbers, and underscores are allowed.<br>";
+elseif (!preg_match("/^[a-zA-Z0-9_-]*$/", $password)) {
+    echo "Invalid password: only upper/lowercase letters, numbers, underscores, and hyphens are allowed.<br>";
 }
-elseif (strlen($password) > 14) {
-    echo "Invalid password: must be less than 14 characters.<br>";
+elseif (strlen($password) > 24) {
+    echo "Invalid password: must be less than 24 characters.<br>";
 }
 else{
     echo "Valid password.<br>";
