@@ -24,7 +24,7 @@ ini_set('display_errors', '1');
 include_once 'db_config.php';
 
 // validate form input for username
-function validate_username($username, $max_len = 14){
+function validate_username($username, $max_len = 14, $conn){
     if (empty($username)) {
         echo "Invalid username: cannot be blank.<br>";
         return false;
@@ -84,7 +84,7 @@ $username = "";
 if( count($_POST) > 0){
     $username = $_POST["username"];
 }
-$valid_username = validate_username($username,14);
+$valid_username = validate_username($username,14,$conn);
 
 $password = "";
 $valid_password = False;
