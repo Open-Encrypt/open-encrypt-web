@@ -41,20 +41,44 @@
         }
         return $json_object;
     }
-    //encrypt a message using the given public key
-    function encrypt_message($public_key,$plaintext,$encryption_method="ring_lwe"){
+    // Encrypt a message using the given public key
+    function encrypt_message($public_key, $plaintext, $encryption_method = "ring_lwe") {
         $binary_path = "/var/www/open-encrypt.com/html/";
-        $command = escapeshellcmd(
-            $binary_path 
-            . ($encryption_method == "ring_lwe" ? "ring-lwe-v0.1.8" : "module-lwe-v0.1.5") 
-            . " encrypt " 
-            . "--pubkey "
-            . escapeshellarg(trim($public_key))
-            . " " 
-            . escapeshellarg(trim($plaintext))
-        ) . " 2>&1"; // capture stderr
+        $binary = ($encryption_method == "ring_lwe" ? "ring-lwe-v0.1.8" : "module-lwe-v0.1.5");
+        $binary_full = $binary_path . $binary;
+
+        if ($encryption_method == "ring_lwe") {
+            // Inline key works fine for ring-lwe
+            $command = escapeshellcmd(
+                $binary_full 
+                . " encrypt "
+                . "--pubkey " 
+                . escapeshellarg(trim($public_key))
+                . " " 
+                . escapeshellarg(trim($plaintext))
+            ) . " 2>&1"; // capture stderr
+        } else {
+            // Write public key to a temp file for module-lwe
+            $tmp_pubkey_file = tempnam(sys_get_temp_dir(), "pubkey_");
+            file_put_contents($tmp_pubkey_file, trim($public_key));
+
+            $command = escapeshellcmd(
+                $binary_full 
+                . " encrypt "
+                . "--pubkey-file " 
+                . escapeshellarg($tmp_pubkey_file)
+                . " " 
+                . escapeshellarg(trim($plaintext))
+            ) . " 2>&1"; // capture stderr
+        }
+
         $encrypted_string = shell_exec($command);
-        echo($encrypted_string);
+
+        // Optionally clean up temp file
+        if (isset($tmp_pubkey_file) && file_exists($tmp_pubkey_file)) {
+            unlink($tmp_pubkey_file);
+        }
+
         return $encrypted_string;
     }
     //decrypt a message using the secret key
