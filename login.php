@@ -89,7 +89,7 @@ $password = "";
 $valid_password = False;
 if( isset($_POST['password'])){
     $password = $_POST["password"];
-    $valid_password = validate($password,14,"password");
+    $valid_password = validate($password,24,"password");
 }
 
 if ($valid_username && $valid_password){
