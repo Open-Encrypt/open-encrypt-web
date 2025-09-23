@@ -96,6 +96,29 @@
         $decrypted_string = shell_exec($command);
         return $decrypted_string;
     }
+    function make_tempfile($prefix = 'oe_') {
+        $tmp = sys_get_temp_dir();
+        $name = tempnam($tmp, $prefix);
+        if ($name === false) {
+            throw new Exception("Unable to create temp file");
+        }
+        return $name;
+    }
+    // Decrypt using secret key and ciphertext files
+    function run_decrypt_with_files(string $seckey_file, string $ciphertext_file, string $encryption_method) : string {
+        $binary_path = "/var/www/open-encrypt.com/html/";
+        $binary = ($encryption_method === "ring_lwe")
+            ? "ring-lwe-v0.1.8"
+            : "module-lwe-v0.1.5";
+
+        $cmd = $binary_path . $binary
+            . " decrypt --secret-file " . escapeshellarg($seckey_file)
+            . " --ciphertext-file " . escapeshellarg($ciphertext_file)
+            . " 2>&1";
+
+        $output = shell_exec($cmd);
+        return $output === null ? "" : $output;
+    }
     //retrieve the public key from the database for the given username
     function fetch_public_key($username,$conn){
         if(username_exists($username,"public_keys",$conn)){
@@ -378,14 +401,16 @@
         echo "-----------------------------------------------------------<br><br>";
     ?>
 
-    <form method="post">
-        <label for="secret_key">Secret Key:</label>
-        <input type="text" id="secret_key" name="secret_key">
-        <input type="submit" name="decrypt_messages" class="button" value="Decrypt Messages" />
-        <input type="radio" id="ring_lwe" name="encryption_method" value="ring_lwe">
-        <label for="ring_lwe">ring-LWE</label>
-        <input type="radio" id="module_lwe" name="encryption_method" value="module_lwe">
-        <label for="module_lwe">module-LWE</label>
+    <form method="post" enctype="multipart/form-data">
+    <label for="secret_key_file">Upload Secret Key File:</label>
+    <input type="file" id="secret_key_file" name="secret_key_file" accept=".txt,.key" required>
+    <br>
+    <input type="radio" id="ring_lwe" name="encryption_method" value="ring_lwe" checked>
+    <label for="ring_lwe">ring-LWE</label>
+    <input type="radio" id="module_lwe" name="encryption_method" value="module_lwe">
+    <label for="module_lwe">module-LWE</label>
+    <br>
+    <input type="submit" name="decrypt_messages" class="button" value="Decrypt Messages" />
     </form>
 
     <form method="post">
@@ -415,43 +440,61 @@
         }
     ?>
 
-<?php   
-        //decrypt messages sent to the current user using the provided secret key
-        if(isset($_SESSION['user']) && isset($_POST['decrypt_messages']) && isset($_POST['secret_key']) && isset($_POST['encryption_method'])){
+<?php
+if (isset($_SESSION['user']) && isset($_POST['decrypt_messages']) && isset($_POST['encryption_method'])) {
+    $username = $_SESSION['user'];
+    $encryption_method = $_POST['encryption_method'];
 
-            $username = $_SESSION['user'];
-            $secret_key = $_POST['secret_key'];
-            $secret_key_method = $_POST['encryption_method'];
+    if (!isset($_FILES['secret_key_file']) || $_FILES['secret_key_file']['error'] !== UPLOAD_ERR_OK) {
+        echo "Error: Secret key file is required.";
+        return;
+    }
 
-            if (!valid_secret_key($secret_key,$secret_key_method)){
-                echo "Error: Invalid secret key.";
-            }
-            else{
-                $sql_get_messages = "SELECT * FROM messages WHERE `to` = '$username'";
-                try{
-                    if ($result = mysqli_query($conn, $sql_get_messages)) {
-                        echo "Retrieved messages successfully...";
-                        echo "Trying to decrypt messages...<br><br>";
-                        while($row = $result->fetch_assoc()){
-                            echo $row['from'] . "-->" . $row['to'] . ": ";
-                            if($secret_key_method == $row['method']){
-                                $decrypted_message = decrypt_message($secret_key,$row['message'],$row['method']);
-                                echo $decrypted_message;
-                            }
-                            else{
-                                echo "[different encryption method]";
-                            }
-                            echo "<br>";
-                        }
-                    }
-                }
-                catch(Exception $e) {
-                    echo "Error: " . $sql_get_messages . "<br>" . mysqli_error($conn);
-                }
-            }
+    // move secret key file to temp location
+    $tmp_name = $_FILES['secret_key_file']['tmp_name'];
+    $seckey_tempfile = make_tempfile('seckey_');
+    if (!move_uploaded_file($tmp_name, $seckey_tempfile)) {
+        if (!copy($tmp_name, $seckey_tempfile)) {
+            echo "Error: Failed to store uploaded secret key.";
+            return;
         }
+    }
 
-    ?>
+    $sql_get_messages = "SELECT * FROM messages WHERE `to` = '" . mysqli_real_escape_string($conn, $username) . "'";
+    try {
+        if ($result = mysqli_query($conn, $sql_get_messages)) {
+            echo "Retrieved messages successfully...<br>Trying to decrypt messages...<br><br>";
+            while ($row = $result->fetch_assoc()) {
+                echo htmlspecialchars($row['from']) . " --> " . htmlspecialchars($row['to']) . ": ";
+
+                if ($encryption_method !== $row['method']) {
+                    echo "[different encryption method]<br>";
+                    continue;
+                }
+
+                $ciphertext = $row['message'];
+                $ct_tempfile = make_tempfile('ct_');
+                file_put_contents($ct_tempfile, $ciphertext);
+
+                $out = run_decrypt_with_files($seckey_tempfile, $ct_tempfile, $encryption_method);
+                echo "<pre>" . htmlspecialchars($out) . "</pre>";
+
+                @unlink($ct_tempfile);
+                echo "<br>";
+            }
+        } else {
+            echo "Error reading messages: " . mysqli_error($conn);
+        }
+    } catch (Exception $e) {
+        echo "Error: " . $e->getMessage();
+    } finally {
+        if (!empty($seckey_tempfile) && file_exists($seckey_tempfile)) {
+            @unlink($seckey_tempfile);
+        }
+    }
+}
+?>
+
 
     <?php
         if(array_key_exists('logout', $_POST)) { 
