@@ -188,7 +188,7 @@
             return false;
         }
         // To check that message only contains alphabets, numbers, underscores, spaces
-        if (!preg_match("/^[\x20-\x7E]*$/", $message)) {
+        if (!preg_match("/^[\x20-\x7E&&[^']]*$/", $message)) {
             return false;
         }
         if (strlen($message) > $max_len) {
