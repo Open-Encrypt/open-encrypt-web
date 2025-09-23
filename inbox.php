@@ -268,10 +268,15 @@
     }
     ?>
 
-    <form action="inbox.php" method="POST">
-        To: <input type="text" id="to" name="to">
-        Message: <input type="text" id="message" name="message">
-        <input type="submit" value="Send">
+    <!-- Simple form to send a message -->
+    <form action="inbox.php" method="POST" style="max-width: 400px; padding: 10px; border: 1px solid #000; background: #fff; color: #000; text-align: left;">
+        <label for="to">To:</label><br>
+        <input type="text" id="to" name="to" style="width: 100%; margin-bottom: 10px; border: 1px solid #000; padding: 5px;"><br>
+
+        <label for="message">Message:</label><br>
+        <input type="text" id="message" name="message" style="width: 100%; margin-bottom: 10px; border: 1px solid #000; padding: 5px;"><br>
+
+        <input type="submit" value="Send" style="background: #000; color: #fff; border: none; padding: 8px 12px; cursor: pointer;">
     </form>
 
     <form method="post">
@@ -305,11 +310,21 @@
                 $secret_key = trim($json_keys["secret"]);
                 $public_key = trim($json_keys["public"]);
             }
-            echo "Secret key ($encryption_method): This is private and should be written down and stored safely. It is used to decrypt messages you've received.<br><br>";
-            echo $secret_key;
+
+            // display secret key to user in scrollable box
+            echo "Secret key ($encryption_method): This is private and should be written down and stored safely. It is used to decrypt messages you've received from others.<br><br>";
+            echo '<div style="display:inline-block;max-height:300px;overflow-y:auto;padding:10px;border:1px solid #ccc;background:#f9f9f9;font-family:monospace;white-space:pre;">';
+            echo chunk_split($secret_key, 64, "\n"); // display the secret key in chunks of 64 characters per line
+            echo '</div>';
+            
             echo "<br><br>";
-            echo "Public key ($encryption_method): This is public and is stored on the server. It is used for encrypting messages sent to you.<br><br>";
-            echo $public_key;
+            
+            // display public key to user in scrollable box
+            echo "Public key ($encryption_method): This your public key. It is used by others to encrypt messages sent to you. Click \"Save Public Key\" to save it to the server.<br><br>";
+            echo '<div style="display:inline-block;max-height:300px;overflow-y:auto;padding:10px;border:1px solid #ccc;background:#f9f9f9;font-family:monospace;white-space:pre;">';
+            echo chunk_split($public_key, 64, "\n"); // display the public key in chunks of 64 characters per line
+            echo '</div>';
+
             echo "<br><br>";
 
             //set the public key and encryption method as session variables to be used for "save keys"
@@ -364,9 +379,15 @@
         $public_key = fetch_public_key($username,$conn);
         $encryption_method = fetch_encryption_method($username,$conn);
         $is_valid = valid_public_key($public_key, $encryption_method);
-        echo "is_valid: " . ($is_valid ? "true" : "false") . "<br>";
-        echo "public_key: " . $public_key . "<br>";
-        echo "encryption_method: " . $encryption_method . "<br>";
+        if (!$is_valid) {
+            echo "Error: Invalid public key stored for $username.<br>";
+            return;
+        }
+        // display public key to user in scrollable box
+        echo "Public key ($encryption_method): This your public key. It is used by others to encrypt messages sent to you. Click \"Save Public Key\" to save it to the server.<br><br>";
+        echo '<div style="display:inline-block;max-height:300px;overflow-y:auto;padding:10px;border:1px solid #ccc;background:#f9f9f9;font-family:monospace;white-space:pre;">';
+        echo chunk_split($public_key, 64, "\n"); // display the public key in chunks of 64 characters per line
+        echo '</div>';
     }
 ?>
 
