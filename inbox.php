@@ -492,7 +492,7 @@ if (isset($_SESSION['user']) && isset($_POST['decrypt_messages']) && isset($_POS
                 file_put_contents($ct_tempfile, $ciphertext);
 
                 $out = run_decrypt_with_files($seckey_tempfile, $ct_tempfile, $encryption_method);
-                echo "<pre>" . htmlspecialchars($out) . "</pre>";
+                echo htmlspecialchars($out);
 
                 @unlink($ct_tempfile);
                 echo "<br>";
