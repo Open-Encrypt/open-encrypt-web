@@ -455,6 +455,7 @@
     ?>
 
 <?php
+// decrypt messages sent to the current user using uploaded secret key file
 if (isset($_SESSION['user']) && isset($_POST['decrypt_messages']) && isset($_POST['encryption_method'])) {
     $username = $_SESSION['user'];
     $encryption_method = $_POST['encryption_method'];
