@@ -188,7 +188,7 @@
             return false;
         }
         // To check that message only contains alphabets, numbers, underscores, spaces
-        if (!preg_match("/^[a-zA-Z0-9_ !?.:;'’]*$/", $message)) {
+        if (!preg_match("/^[\x20-\x7E]*$/", $message)) {
             return false;
         }
         if (strlen($message) > $max_len) {
@@ -459,20 +459,22 @@
                 echo "Error: Invalid message.<br>";
             }
             
-            if(username_exists($to_username,"login_info",$conn) and $valid_recipient and $valid_message){
-                $public_key = fetch_public_key($to_username,$conn);
-                $encrypted_message = encrypt_message($public_key,$message,$encryption_method);
-                // form the sql string to insert the message into the tables messages
-                $sql_insert = "INSERT INTO `messages` (`from`, `to`, `message`,`method`) VALUES ('$from_username', '$to_username','$encrypted_message','$encryption_method')";
+            if (username_exists($to_username, "login_info", $conn) && $valid_recipient && $valid_message){
+                $public_key = fetch_public_key($to_username, $conn);
+                $encrypted_message = encrypt_message($public_key, $message, $encryption_method);
+
+                // --- Prepared statement ---
+                $stmt = $conn->prepare("INSERT INTO `messages` (`from`, `to`, `message`, `method`) VALUES (?, ?, ?, ?)");
+                $stmt->bind_param("ssss", $from_username, $to_username, $encrypted_message, $encryption_method);
+
                 echo "Trying SQL insertion...";
-                try{
-                    if (mysqli_query($conn, $sql_insert)) {
-                        echo "Success: message sent from $from_username to $to_username using $encryption_method.<br>";
-                    }
+                if ($stmt->execute()) {
+                    echo "Success: message sent from $from_username to $to_username using $encryption_method.<br>";
+                } else {
+                    echo "Error: " . $stmt->error . "<br>";
                 }
-                catch(Exception $e) {
-                    echo "Error: " . $sql_insert . "<br>" . mysqli_error($conn);
-                }
+
+                $stmt->close();
             }
             else{
                 echo "Error: username does not exist or invalid recipient or invalid message.<br>";
