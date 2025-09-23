@@ -168,16 +168,30 @@
             echo "Error: " . $sql_check . "<br>" . mysqli_error($conn);
         }
     }
-    // validate user input from forms
-    function valid_input($user_input,$max_len){
-        if (empty($user_input)) {
+    // validate username input from form
+    function valid_username($username,$max_len){
+        if (empty($username)) {
             return false;
         }
         // To check that username only contains alphabets, numbers, and underscores 
-        if (!preg_match("/^[a-zA-Z0-9_]*$/", $user_input)) {
+        if (!preg_match("/^[a-zA-Z0-9_]*$/", $username)) {
             return false;
         }
         if (strlen($user_input) > $max_len) {
+            return false;
+        }
+        return true;
+    }
+    // validate message input from form
+    function valid_message($message,$max_len){
+        if (empty($message)) {
+            return false;
+        }
+        // To check that username only contains alphabets, numbers, and underscores 
+        if (!preg_match("/^[a-zA-Z0-9_]*$/", $message)) {
+            return false;
+        }
+        if (strlen($message) > $max_len) {
             return false;
         }
         return true;
@@ -367,11 +381,11 @@
             //get the encryption method used by $to_username
             $encryption_method = fetch_encryption_method($to_username,$conn);
 
-            $valid_recipient = valid_input($to_username,14);
+            $valid_recipient = valid_username($to_username,14);
             if (!$valid_recipient){
                 echo "Error: Invalid recipient.<br>";
             }
-            $valid_message = valid_input($message,240);
+            $valid_message = valid_message($message,240);
             if (!$valid_message){
                 echo "Error: Invalid message.<br>";
             }
