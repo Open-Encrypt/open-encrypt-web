@@ -187,8 +187,8 @@
         if (empty($message)) {
             return false;
         }
-        // To check that username only contains alphabets, numbers, and underscores 
-        if (!preg_match("/^[a-zA-Z0-9_]*$/", $message)) {
+        // To check that message only contains alphabets, numbers, underscores, spaces
+        if (!preg_match("/^[a-zA-Z0-9_ ]*$/", $message)) {
             return false;
         }
         if (strlen($message) > $max_len) {
