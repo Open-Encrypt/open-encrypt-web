@@ -38,23 +38,44 @@
 
 <?php
 
-// validate form input
-function validate($user_input,$max_len,$type= "input"){
-    if (empty($user_input)) {
+// validate form input for username
+function validate_username($username,$max_len = 14){
+    if (empty($username)) {
         echo "Invalid $type: cannot be blank.<br>";
         return False;
     }
     // To check that username only contains alphabets, numbers, and underscores 
-    elseif (!preg_match("/^[a-zA-Z0-9_]*$/", $user_input)) {
+    elseif (!preg_match("/^[a-zA-Z0-9_]*$/", $username)) {
         echo "Invalid $type: only letters, numbers, and underscores are allowed.<br>";
         return False;
     }
-    elseif (strlen($user_input) > $max_len) {
+    elseif (strlen($username) > $max_len) {
         echo "Invalid $type: must be less than 14 characters.<br>";
         return False;
     }
     else{
         return True;
+    }
+}
+
+// validate form input for passsword
+function validate_password($password, $max_len = 24){
+    if (empty($password)) {
+        echo "Invalid password: cannot be blank.<br>";
+        return false;
+    }
+    // To check that password only contains alphabets, numbers, and underscores 
+    elseif (!preg_match("/^[a-zA-Z0-9_-]*$/", $password)) {
+        echo "Invalid password: only upper/lowercase letters, numbers, underscores, and hyphens are allowed.<br>";
+        return false;
+    }
+    elseif (strlen($password) > $max_len) {
+        echo "Invalid password: must be less than " . $max_len . "characters.<br>";
+        return false;
+    }
+    else{
+        echo "Valid password.<br>";
+        return true;
     }
 }
 
@@ -82,14 +103,14 @@ $username = "";
 $valid_username = False;
 if( isset($_POST['username'])){
     $username = $_POST['username'];
-    $valid_username = validate($username,14,"username") && username_exists($username,$conn);
+    $valid_username = validate_username($username,14) && username_exists($username,$conn);
 }
 
 $password = "";
 $valid_password = False;
 if( isset($_POST['password'])){
     $password = $_POST["password"];
-    $valid_password = validate($password,24,"password");
+    $valid_password = validate_password($password,24);
 }
 
 if ($valid_username && $valid_password){
