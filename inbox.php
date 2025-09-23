@@ -31,7 +31,7 @@
     //define a function which generates public and private keys
     function generate_keys($encryption_method = "ring_lwe"){
         $binary_path = "/var/www/open-encrypt.com/html/";
-        $command = escapeshellcmd($binary_path . ($encryption_method == "ring_lwe" ? "ring-lwe-v0.1.7" : "module-lwe-v0.1.4") . " keygen");
+        $command = escapeshellcmd($binary_path . ($encryption_method == "ring_lwe" ? "ring-lwe-v0.1.8" : "module-lwe-v0.1.5") . " keygen");
         $json_string = shell_exec($command);
         try{
             $json_object = json_decode($json_string, true, 512, JSON_THROW_ON_ERROR);
@@ -44,16 +44,16 @@
     //encrypt a message using the given public key
     function encrypt_message($public_key,$plaintext,$encryption_method="ring_lwe"){
         $binary_path = "/var/www/open-encrypt.com/html/";
-        $tmpfile = file_put_contents(tempnam(sys_get_temp_dir(), 'pubkey_'), $public_key);
         $command = escapeshellcmd(
             $binary_path 
-            . ($encryption_method == "ring_lwe" ? "ring-lwe-v0.1.7" : "module-lwe-v0.1.4") 
-            . " encrypt " 
+            . ($encryption_method == "ring_lwe" ? "ring-lwe-v0.1.8" : "module-lwe-v0.1.5") 
+            . " encrypt " . "--pubkey "
             . escapeshellarg(trim($public_key))
             . " " 
             . escapeshellarg(trim($plaintext))
-        );
+        ) . " 2>&1"; // capture stderr
         $encrypted_string = shell_exec($command);
+        echo($encrypted_string);
         return $encrypted_string;
     }
     //decrypt a message using the secret key
@@ -61,12 +61,12 @@
         $binary_path = "/var/www/open-encrypt.com/html/";
         $command = escapeshellcmd(
             $binary_path 
-            . ($encryption_method == "ring_lwe" ? "ring-lwe-v0.1.7" : "module-lwe-v0.1.4") 
+            . ($encryption_method == "ring_lwe" ? "ring-lwe-v0.1.8" : "module-lwe-v0.1.5") 
             . " decrypt " 
             . escapeshellarg(trim($secret_key)) 
             . " " 
             . escapeshellarg(trim($ciphertext))
-        );
+        ) . " 2>&1";
         $decrypted_string = shell_exec($command);
         return $decrypted_string;
     }
