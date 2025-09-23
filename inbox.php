@@ -296,20 +296,33 @@
     </form>
 
     <script>
-        function copyToClipboard(elementId) {
-            const el = document.getElementById(elementId);
-            const text = el.innerText || el.textContent;
+        function copyKey(divId) {
+            const keyDiv = document.getElementById(divId);
+            if (!keyDiv) return;
 
-            navigator.clipboard.writeText(text).then(() => {
-                alert('Copied to clipboard!');
+            // Use textContent, not innerText
+            let keyText = keyDiv.textContent;
+
+            // Remove only newline characters from chunk_split
+            keyText = keyText.replace(/\r?\n/g, '');
+
+            navigator.clipboard.writeText(keyText).then(() => {
+                alert("Key copied to clipboard!");
             }).catch(err => {
-                alert('Failed to copy: ' + err);
+                console.error("Failed to copy: ", err);
             });
         }
 
         function downloadKey(elementId, filename) {
             const el = document.getElementById(elementId);
-            const text = el.innerText || el.textContent;
+            if (!el) return;
+
+            // Use textContent only
+            let text = el.textContent;
+
+            // Remove newlines from chunk_split only
+            text = text.replace(/\r?\n/g, '');
+
             const blob = new Blob([text], { type: 'text/plain' });
             const url = URL.createObjectURL(blob);
 
@@ -345,7 +358,8 @@
             echo '<div style="display:inline-block;max-height:300px;overflow-y:auto;padding:10px;border:1px solid #ccc;background:#f9f9f9;font-family:monospace;white-space:pre;" id="secret_key_box">';
             echo chunk_split($secret_key, 64, "\n"); // display the secret key in chunks of 64 characters per line
             echo '</div>';
-            echo '<button onclick="copyToClipboard(\'secret_key_box\')">Copy Secret Key</button> ';
+            // buttons to save and copy secret key
+            echo '<button onclick="copyKey(\'secret_key_box\')">Copy Secret Key</button> ';
             echo '<button onclick="downloadKey(\'secret_key_box\', \'secret.key\')">Save Secret Key</button>';
             
             echo "<br><br>";
@@ -355,7 +369,8 @@
             echo '<div style="display:inline-block;max-height:300px;overflow-y:auto;padding:10px;border:1px solid #ccc;background:#f9f9f9;font-family:monospace;white-space:pre;" id="public_key_box">';
             echo chunk_split($public_key, 64, "\n"); // display the public key in chunks of 64 characters per line
             echo '</div>';
-            echo '<button onclick="copyToClipboard(\'public_key_box\')">Copy Public Key</button> ';
+            //buttons to save and copy public key
+            echo '<button onclick="copyKey(\'public_key_box\')">Copy Public Key</button> ';
             echo '<button onclick="downloadKey(\'public_key_box\', \'public.key\')">Save Public Key</button>';
 
             echo "<br><br>";
@@ -530,11 +545,29 @@ if (isset($_SESSION['user']) && isset($_POST['decrypt_messages']) && isset($_POS
         }
     }
 
+    // read the secret key file into a string
+    $secret_key_contents = file_get_contents($seckey_tempfile);
+    if ($secret_key_contents === false) {
+        echo "Error: Could not read secret key file.";
+        return;
+    }
+
+    // trim whitespace (especially newlines at the start/end)
+    $secret_key_contents = trim($secret_key_contents);
+
+    // validate it
+    if (!valid_secret_key($secret_key_contents, $encryption_method)) {
+        echo "Error: Invalid secret key.";
+        return;
+    }
+
     $sql_get_messages = "SELECT * FROM messages WHERE `to` = '" . mysqli_real_escape_string($conn, $username) . "'";
     try {
         if ($result = mysqli_query($conn, $sql_get_messages)) {
             echo "Retrieved messages successfully...<br>Trying to decrypt messages...<br><br>";
             while ($row = $result->fetch_assoc()) {
+                echo "[id=" . htmlspecialchars($row['id']) . "] ";
+
                 echo htmlspecialchars($row['from']) . " --> " . htmlspecialchars($row['to']) . ": ";
 
                 if ($encryption_method !== $row['method']) {
