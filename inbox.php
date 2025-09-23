@@ -177,7 +177,7 @@
         if (!preg_match("/^[a-zA-Z0-9_]*$/", $username)) {
             return false;
         }
-        if (strlen($user_input) > $max_len) {
+        if (strlen($username) > $max_len) {
             return false;
         }
         return true;
