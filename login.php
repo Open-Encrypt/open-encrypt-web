@@ -11,6 +11,10 @@
     if(isset($_SESSION['user'])){
         redirect("inbox.php");
     }
+    // Function to generate a secure token
+    function generate_token() {
+        return bin2hex(random_bytes(16)); // 32 characters long
+    }
 ?>
 <html>
     <head>
@@ -99,6 +103,17 @@ function username_exists($username,$conn){
     }
 }
 
+//store the generated login token in the login_info database
+function store_token($username,$conn,$token){
+    $sql_store_token = "UPDATE login_info SET token = '$token' WHERE username = '$username'";
+    try{
+        mysqli_query($conn, $sql_store_token);
+    }
+    catch(Exception $e) {
+        $response['error'] = "Error: " . $sql_insert . "|" . mysqli_error($conn);
+    }
+}
+
 $username = "";
 $valid_username = False;
 if( isset($_POST['username'])){
@@ -121,8 +136,8 @@ if ($valid_username && $valid_password){
         $row = $result->fetch_assoc();
         if(password_verify($password,$row['password'])){
             echo "Login successful.";
-            //$login_token = random_bytes(32);
-            //echo bin2hex($login_token);
+            $login_token = generate_token();
+            store_token($username,$conn,$login_token);
             $_SESSION['user'] = $username;
             redirect("inbox.php");
         }

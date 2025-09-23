@@ -288,12 +288,41 @@
     </form>
 
     <form method="post">
-        <input type="submit" name="save_keys" class="button" value="Save Public Key" />
+        <input type="submit" name="save_keys" class="button" value="Save Public Key (to Server)" />
     </form>
 
     <form method="post">
         <input type="submit" name="view_keys" class="button" value="View Public Key" /> 
     </form>
+
+    <script>
+        function copyToClipboard(elementId) {
+            const el = document.getElementById(elementId);
+            const text = el.innerText || el.textContent;
+
+            navigator.clipboard.writeText(text).then(() => {
+                alert('Copied to clipboard!');
+            }).catch(err => {
+                alert('Failed to copy: ' + err);
+            });
+        }
+
+        function downloadKey(elementId, filename) {
+            const el = document.getElementById(elementId);
+            const text = el.innerText || el.textContent;
+            const blob = new Blob([text], { type: 'text/plain' });
+            const url = URL.createObjectURL(blob);
+
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+
+            URL.revokeObjectURL(url);
+        }
+    </script>
 
     <?php
         //if the "key generation" button is pressed and there is a valid user session, generate public/private key pair
@@ -313,17 +342,21 @@
 
             // display secret key to user in scrollable box
             echo "Secret key ($encryption_method): This is private and should be written down and stored safely. It is used to decrypt messages you've received from others.<br><br>";
-            echo '<div style="display:inline-block;max-height:300px;overflow-y:auto;padding:10px;border:1px solid #ccc;background:#f9f9f9;font-family:monospace;white-space:pre;">';
+            echo '<div style="display:inline-block;max-height:300px;overflow-y:auto;padding:10px;border:1px solid #ccc;background:#f9f9f9;font-family:monospace;white-space:pre;" id="secret_key_box">';
             echo chunk_split($secret_key, 64, "\n"); // display the secret key in chunks of 64 characters per line
             echo '</div>';
+            echo '<button onclick="copyToClipboard(\'secret_key_box\')">Copy Secret Key</button> ';
+            echo '<button onclick="downloadKey(\'secret_key_box\', \'secret.key\')">Save Secret Key</button>';
             
             echo "<br><br>";
             
             // display public key to user in scrollable box
-            echo "Public key ($encryption_method): This your public key. It is used by others to encrypt messages sent to you. Click \"Save Public Key\" to save it to the server.<br><br>";
-            echo '<div style="display:inline-block;max-height:300px;overflow-y:auto;padding:10px;border:1px solid #ccc;background:#f9f9f9;font-family:monospace;white-space:pre;">';
+            echo "Public key ($encryption_method): This your public key. It is used by others to encrypt messages sent to you. Click \"Save Public Key (to server)\" to store it and register it to your account.<br><br>";
+            echo '<div style="display:inline-block;max-height:300px;overflow-y:auto;padding:10px;border:1px solid #ccc;background:#f9f9f9;font-family:monospace;white-space:pre;" id="public_key_box">';
             echo chunk_split($public_key, 64, "\n"); // display the public key in chunks of 64 characters per line
             echo '</div>';
+            echo '<button onclick="copyToClipboard(\'public_key_box\')">Copy Public Key</button> ';
+            echo '<button onclick="downloadKey(\'public_key_box\', \'public.key\')">Save Public Key</button>';
 
             echo "<br><br>";
 
@@ -432,9 +465,7 @@
         }
     ?>
 
-    <?php
-        echo "-----------------------------------------------------------<br><br>";
-    ?>
+    <hr style="border: 1px solid black;">
 
     <form method="post" enctype="multipart/form-data">
     <label for="secret_key_file">Upload Secret Key File:</label>
@@ -464,7 +495,10 @@
                     echo "retrieved messages successfully.<br><br>";
                     while($row = $result->fetch_assoc()){
                         echo $row['from'] . "-->" . $row['to'] . ' (' . $row['method'] . "): ";
-                        echo $row['message'];
+                        // display encrypted message to user in scrollable box
+                        echo '<div style="display:inline-block;max-height:300px;overflow-y:auto;padding:10px;border:1px solid #ccc;background:#f9f9f9;font-family:monospace;white-space:pre;">';
+                        echo chunk_split($row['message'], 64, "\n"); // display the secret key in chunks of 64 characters per line
+                        echo '</div>';
                         echo "<br>";
                     }
                 }
