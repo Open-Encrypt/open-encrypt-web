@@ -188,7 +188,7 @@
             return false;
         }
         // To check that message only contains alphabets, numbers, underscores, spaces
-        if (!preg_match("/^[a-zA-Z0-9_ !?.:;]*$/", $message)) {
+        if (!preg_match("/^[a-zA-Z0-9_ !?.:;'’]*$/", $message)) {
             return false;
         }
         if (strlen($message) > $max_len) {
@@ -509,6 +509,7 @@
                 if ($result = mysqli_query($conn, $sql_get_messages)) {
                     echo "retrieved messages successfully.<br><br>";
                     while($row = $result->fetch_assoc()){
+                        echo "[id=" . htmlspecialchars($row['id']) . "] ";
                         echo $row['from'] . "-->" . $row['to'] . ' (' . $row['method'] . "): ";
                         // display encrypted message to user in scrollable box
                         echo '<div style="display:inline-block;max-height:300px;overflow-y:auto;padding:10px;border:1px solid #ccc;background:#f9f9f9;font-family:monospace;white-space:pre;">';
