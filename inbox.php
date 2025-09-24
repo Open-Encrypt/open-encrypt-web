@@ -206,7 +206,8 @@
         }
 
         // check if it's a valid base64 string
-        if (base64_encode(base64_decode($secret_key, true)) !== $secret_key) {
+        if (!preg_match("/^[A-Za-z0-9+\/]+={0,2}$/",$secret_key)) {
+            echo "Error: " . "secret key is not valid base64 string.";
             return false;
         }
 
@@ -229,7 +230,7 @@
         }
 
         // check if it's a valid base64 string
-        if (base64_encode(base64_decode($public_key, true)) !== $public_key) {
+        if (!preg_match("/^[A-Za-z0-9+\/]+={0,2}$/",$public_key)) {
             echo "Error: " . "public key is not valid base64 string.";
             return false;
         }
@@ -252,8 +253,7 @@
         <title>Open Encrypt</title>
     </head>
     <body>
-        <h1>Under construction.</h1>
-    </body>
+    <h1>Under construction.</h1>
 
     <a href="index.html">Home</a>
     <a href="inbox.php">Messages</a>
@@ -622,5 +622,5 @@ if (isset($_SESSION['user']) && isset($_POST['decrypt_messages']) && isset($_POS
             logout();
         }
     ?>
-
+</body>
 </html>
