@@ -1,153 +1,101 @@
 <?php
-    error_reporting(E_ALL);
-    ini_set('display_errors', '1');
-    // form a connection to the SQL database
-    include_once 'include/db_config.php';
-    session_start();
-    function redirect($url) {
-        header('Location: '.$url);
-        die();
-    }
-    if(isset($_SESSION['user'])){
+error_reporting(E_ALL);
+ini_set('display_errors', '1');
+
+// form a connection to the SQL database
+include_once 'include/db_config.php';
+include_once 'include/Database.php';
+$db = new Database($conn);
+
+session_start();
+
+function redirect($url) {
+    header('Location: ' . $url);
+    die();
+}
+
+// redirect if user is already logged in
+if (isset($_SESSION['user'])) {
+    redirect("inbox.php");
+}
+
+// generate a secure login token
+function generate_token(): string {
+    return bin2hex(random_bytes(16)); // 32 characters
+}
+
+// validate username
+function validate_username(string $username, int $max_len = 14): bool {
+    if (empty($username)) return false;
+    if (!preg_match("/^[a-zA-Z0-9_]*$/", $username)) return false;
+    if (strlen($username) > $max_len) return false;
+    return true;
+}
+
+// validate password
+function validate_password(string $password, int $max_len = 24): bool {
+    if (empty($password)) return false;
+    if (!preg_match("/^[a-zA-Z0-9_-]*$/", $password)) return false;
+    if (strlen($password) > $max_len) return false;
+    return true;
+}
+
+// check if username exists in login_info
+function username_exists(Database $db, string $username): bool {
+    $count = $db->count("SELECT COUNT(*) FROM login_info WHERE username = ?", [$username], "s");
+    return $count > 0;
+}
+
+// store login token in database
+function store_token(Database $db, string $username, string $token): bool {
+    return $db->execute("UPDATE login_info SET token = ? WHERE username = ?", [$token, $username], "ss");
+}
+
+// ------------------ Process form submission ------------------
+
+$username = $_POST['username'] ?? '';
+$password = $_POST['password'] ?? '';
+
+$valid_username = validate_username($username) && username_exists($db, $username);
+$valid_password = validate_password($password);
+
+if ($valid_username && $valid_password) {
+    $row = $db->fetchOne("SELECT password FROM login_info WHERE username = ?", [$username], "s");
+
+    if ($row && password_verify($password, $row['password'])) {
+        $login_token = generate_token();
+        store_token($db, $username, $login_token);
+
+        $_SESSION['user'] = $username;
         redirect("inbox.php");
+    } else {
+        echo "Error: Incorrect password or user not found.<br>";
     }
-    // Function to generate a secure token
-    function generate_token() {
-        return bin2hex(random_bytes(16)); // 32 characters long
-    }
+} elseif ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    echo "Invalid username or password.<br>";
+}
+
 ?>
 <html>
-    <head>
-        <title>Open Encrypt</title>
-    </head>
-    <body>
-        <h1>Under construction.</h1>
-    </body>
+<head>
+    <title>Open Encrypt</title>
+</head>
+<body>
+    <h1>Under construction.</h1>
 
     <a href="index.html">Home</a>
     <a href="create_account.php">Create Account</a>
 
     <form action="login.php" method="POST">
-  Username: <input type="text" id="username" name="username"><br>
-  Password: <input type="password" id="password" name="password"><br>
-	<input type="submit" value="Login">
-	</form>
+        Username: <input type="text" name="username" value="<?= htmlspecialchars($username) ?>"><br>
+        Password: <input type="password" name="password"><br>
+        <input type="submit" value="Login">
+    </form>
 
-    
     <?php
     if (isset($_SESSION['user'])) {
-        echo "Logged in user:" . $_SESSION['user'];
+        echo "Logged in user: " . htmlspecialchars($_SESSION['user']);
     }
     ?>
-
-<?php
-
-// validate form input for username
-function validate_username($username,$max_len = 14){
-    if (empty($username)) {
-        echo "Invalid $type: cannot be blank.<br>";
-        return False;
-    }
-    // To check that username only contains alphabets, numbers, and underscores 
-    elseif (!preg_match("/^[a-zA-Z0-9_]*$/", $username)) {
-        echo "Invalid $type: only letters, numbers, and underscores are allowed.<br>";
-        return False;
-    }
-    elseif (strlen($username) > $max_len) {
-        echo "Invalid $type: must be less than 14 characters.<br>";
-        return False;
-    }
-    else{
-        return True;
-    }
-}
-
-// validate form input for passsword
-function validate_password($password, $max_len = 24){
-    if (empty($password)) {
-        echo "Invalid password: cannot be blank.<br>";
-        return false;
-    }
-    // To check that password only contains alphabets, numbers, and underscores 
-    elseif (!preg_match("/^[a-zA-Z0-9_-]*$/", $password)) {
-        echo "Invalid password: only upper/lowercase letters, numbers, underscores, and hyphens are allowed.<br>";
-        return false;
-    }
-    elseif (strlen($password) > $max_len) {
-        echo "Invalid password: must be less than " . $max_len . "characters.<br>";
-        return false;
-    }
-    else{
-        echo "Valid password.<br>";
-        return true;
-    }
-}
-
-//check that the username exists in the database
-function username_exists($username,$conn){
-    $sql_unique = "SELECT COUNT(*) FROM login_info WHERE username = '$username'";
-    try{
-        if ($result = mysqli_query($conn, $sql_unique)) {
-            $row = $result->fetch_assoc();
-            if($row['COUNT(*)'] > 0){
-                return True;
-            }
-            else{
-                echo "Username does not exist.";
-                return False;
-            }
-        }
-    }
-    catch (Exception $e) {
-        echo "Error: " . $sql_unique . "<br>" . mysqli_error($conn);
-    }
-}
-
-//store the generated login token in the login_info database
-function store_token($username,$conn,$token){
-    $sql_store_token = "UPDATE login_info SET token = '$token' WHERE username = '$username'";
-    try{
-        mysqli_query($conn, $sql_store_token);
-    }
-    catch(Exception $e) {
-        $response['error'] = "Error: " . $sql_insert . "|" . mysqli_error($conn);
-    }
-}
-
-$username = "";
-$valid_username = False;
-if( isset($_POST['username'])){
-    $username = $_POST['username'];
-    $valid_username = validate_username($username,14) && username_exists($username,$conn);
-}
-
-$password = "";
-$valid_password = False;
-if( isset($_POST['password'])){
-    $password = $_POST["password"];
-    $valid_password = validate_password($password,24);
-}
-
-if ($valid_username && $valid_password){
-
-    // form the sql string with the username and hashed password to insert
-    $sql_check = "SELECT password FROM login_info WHERE username = '$username'";
-    if ($result = mysqli_query($conn, $sql_check)) {
-        $row = $result->fetch_assoc();
-        if(password_verify($password,$row['password'])){
-            echo "Login successful.";
-            $login_token = generate_token();
-            store_token($username,$conn,$login_token);
-            $_SESSION['user'] = $username;
-            redirect("inbox.php");
-        }
-    } 
-    else {
-        echo "Error: " . $sql_check . "<br>" . mysqli_error($conn);
-    }
-}
-
-mysqli_close($conn);
-?>
-
+</body>
 </html>
