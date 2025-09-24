@@ -192,7 +192,7 @@
         }
         return true;
     }
-    // validate user input from forms
+    // validate user input for secret keys
     function valid_secret_key($secret_key, $encryption_method = "ring_lwe") {
         // check if secret key is empty
         if (empty($secret_key)) {
