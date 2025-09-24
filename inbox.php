@@ -2,8 +2,14 @@
     ini_set('display_errors', '1');
     ini_set('display_startup_errors', 1);
     error_reporting(E_ALL);
+
     // form a connection to the SQL database
-    include_once 'db_config.php';
+    include_once 'include/db_config.php';
+
+    // Initialize Database object
+    include_once 'include/Database.php';
+    $db = new Database($conn);
+
     session_start();
     function redirect($url) {
         header('Location: '.$url);
@@ -120,55 +126,43 @@
         return $output === null ? "" : $output;
     }
     // Check whether a username exists in the given table
-    function username_exists($username, $table, $conn) {
-        $sql_check = "SELECT COUNT(*) as cnt FROM `$table` WHERE username = ?";
-        if ($stmt = $conn->prepare($sql_check)) {
-            $stmt->bind_param("s", $username);
-            $stmt->execute();
-            $stmt->bind_result($count);
-            $stmt->fetch();
-            $stmt->close();
-            return $count > 0;
-        } else {
-            echo "Error preparing statement: " . $conn->error;
-            return false;
+    function username_exists(Database $db, string $username, string $table): bool {
+        $allowed_tables = ["login_info", "public_keys"];
+        if (!in_array($table, $allowed_tables)) {
+            throw new Exception("Invalid table name");
         }
+
+        $query = "SELECT COUNT(*) FROM `$table` WHERE username = ?";
+        $count = $db->count($query, [$username], "s");
+        return $count > 0;
     }
-    // Retrieve the public key from the database for the given username
-    function fetch_public_key($username, $conn) {
-        if (!username_exists($username, "public_keys", $conn)) {
+    // fetch the public key for a given username
+    function fetch_public_key(Database $db, string $username): ?string {
+        if (!username_exists($db, $username, "public_keys")) {
             return null;
         }
-        $sql_select = "SELECT public_key FROM `public_keys` WHERE `username` = ?";
-        if ($stmt = $conn->prepare($sql_select)) {
-            $stmt->bind_param("s", $username);
-            $stmt->execute();
-            $stmt->bind_result($public_key);
-            $stmt->fetch();
-            $stmt->close();
-            return $public_key;
-        } else {
-            echo "Error preparing statement: " . $conn->error;
-            return null;
-        }
+
+        $row = $db->fetchOne(
+            "SELECT public_key FROM public_keys WHERE username = ?",
+            [$username],
+            "s"
+        );
+
+        return $row['public_key'] ?? null;
     }
-    // Retrieve the encryption method from the database for the given username
-    function fetch_encryption_method($username, $conn) {
-        if (!username_exists($username, "public_keys", $conn)) {
+    // Fetch encryption method for a username
+    function fetch_encryption_method(Database $db, string $username): ?string {
+        if (!username_exists($db, $username, "public_keys")) {
             return null;
         }
-        $sql_select = "SELECT method FROM `public_keys` WHERE `username` = ?";
-        if ($stmt = $conn->prepare($sql_select)) {
-            $stmt->bind_param("s", $username);
-            $stmt->execute();
-            $stmt->bind_result($method);
-            $stmt->fetch();
-            $stmt->close();
-            return $method;
-        } else {
-            echo "Error preparing statement: " . $conn->error;
-            return null;
-        }
+
+        $row = $db->fetchOne(
+            "SELECT method FROM public_keys WHERE username = ?",
+            [$username],
+            "s"
+        );
+
+        return $row['method'] ?? null;
     }
     // validate username input from form
     function valid_username($username,$max_len){
@@ -384,8 +378,8 @@
     ?>
 
 <?php
-// Save public key securely using prepared statements
-if (isset($_POST['save_keys']) && isset($_SESSION['user']) && isset($_SESSION['public_key']) && isset($_SESSION['encryption_method'])) {
+// Save public key securely using Database class
+if (isset($_POST['save_keys'], $_SESSION['user'], $_SESSION['public_key'], $_SESSION['encryption_method'])) {
     $username = $_SESSION['user'];
     $public_key = $_SESSION['public_key'];
     $encryption_method = $_SESSION['encryption_method'];
@@ -395,50 +389,52 @@ if (isset($_POST['save_keys']) && isset($_SESSION['user']) && isset($_SESSION['p
         return;
     }
 
-    if (!username_exists($username, "public_keys", $conn)) {
+    // Check if public key already exists
+    $row = $db->fetchOne(
+        "SELECT username FROM public_keys WHERE username = ?",
+        [$username],
+        "s"
+    );
+
+    if ($row === null) {
         // INSERT
-        $stmt = $conn->prepare("INSERT INTO `public_keys` (`username`, `public_key`, `method`) VALUES (?, ?, ?)");
-        if ($stmt === false) {
-            die("Prepare failed: " . $conn->error);
-        }
+        $success = $db->execute(
+            "INSERT INTO public_keys (username, public_key, method) VALUES (?, ?, ?)",
+            [$username, $public_key, $encryption_method],
+            "sss"
+        );
 
-        $stmt->bind_param("sss", $username, $public_key, $encryption_method);
-
-        if ($stmt->execute()) {
+        if ($success) {
             echo "Success: $encryption_method public key inserted into SQL database for $username.<br>";
             unset($_SESSION['public_key'], $_SESSION['encryption_method']);
         } else {
-            echo "Error executing INSERT: " . $stmt->error;
+            echo "Error: Failed to insert public key.<br>";
         }
-
-        $stmt->close();
     } else {
         // UPDATE
-        $stmt = $conn->prepare("UPDATE `public_keys` SET `public_key` = ?, `method` = ? WHERE `username` = ?");
-        if ($stmt === false) {
-            die("Prepare failed: " . $conn->error);
-        }
+        $success = $db->execute(
+            "UPDATE public_keys SET public_key = ?, method = ? WHERE username = ?",
+            [$public_key, $encryption_method, $username],
+            "sss"
+        );
 
-        $stmt->bind_param("sss", $public_key, $encryption_method, $username);
-
-        if ($stmt->execute()) {
+        if ($success) {
             echo "Success: $encryption_method public key updated for $username.<br>";
             unset($_SESSION['public_key'], $_SESSION['encryption_method']);
         } else {
-            echo "Error executing UPDATE: " . $stmt->error;
+            echo "Error: Failed to update public key.<br>";
         }
-
-        $stmt->close();
     }
 }
 ?>
+
 
 <?php
     //view public key and encryption method
     if(isset($_POST['view_keys']) && isset($_SESSION['user'])){
         $username = $_SESSION['user'];
-        $public_key = fetch_public_key($username,$conn);
-        $encryption_method = fetch_encryption_method($username,$conn);
+        $public_key = fetch_public_key($db,$username);
+        $encryption_method = fetch_encryption_method($db,$username);
         $is_valid = valid_public_key($public_key, $encryption_method);
         if (!$is_valid) {
             echo "Error: Invalid public key stored for $username.<br>";
@@ -452,48 +448,72 @@ if (isset($_POST['save_keys']) && isset($_SESSION['user']) && isset($_SESSION['p
     }
 ?>
 
-    <?php
-        //send message
-        if (isset($_SESSION['user']) and isset($_POST['to']) and isset($_POST['message'])){
-            //set the variables with message data and metadata
-            $from_username = $_SESSION['user'];
-            $to_username = $_POST['to'];
-            $message = $_POST['message'];
+<?php
+// Send message using Database class
+if (isset($_SESSION['user'], $_POST['to'], $_POST['message'])) {
+    $from_username = $_SESSION['user'];
+    $to_username = $_POST['to'];
+    $message = $_POST['message'];
 
-            //get the encryption method used by $to_username
-            $encryption_method = fetch_encryption_method($to_username,$conn);
+    // Validate recipient and message
+    $valid_recipient = valid_username($to_username, 14);
+    $valid_message = valid_message($message, 240);
 
-            $valid_recipient = valid_username($to_username,14);
-            if (!$valid_recipient){
-                echo "Error: Invalid recipient.<br>";
-            }
-            $valid_message = valid_message($message,240);
-            if (!$valid_message){
-                echo "Error: Invalid message.<br>";
-            }
-            
-            if (username_exists($to_username, "login_info", $conn) && $valid_recipient && $valid_message){
-                $public_key = fetch_public_key($to_username, $conn);
-                $encrypted_message = encrypt_message($public_key, $message, $encryption_method);
+    if (!$valid_recipient) {
+        echo "Error: Invalid recipient.<br>";
+        return;
+    }
 
-                // --- Prepared statement ---
-                $stmt = $conn->prepare("INSERT INTO `messages` (`from`, `to`, `message`, `method`) VALUES (?, ?, ?, ?)");
-                $stmt->bind_param("ssss", $from_username, $to_username, $encrypted_message, $encryption_method);
+    if (!$valid_message) {
+        echo "Error: Invalid message.<br>";
+        return;
+    }
 
-                echo "Trying SQL insertion...";
-                if ($stmt->execute()) {
-                    echo "Success: message sent from $from_username to $to_username using $encryption_method.<br>";
-                } else {
-                    echo "Error: " . $stmt->error . "<br>";
-                }
+    // Check if recipient exists
+    $recipient = $db->fetchOne(
+        "SELECT username FROM login_info WHERE username = ?",
+        [$to_username],
+        "s"
+    );
 
-                $stmt->close();
-            }
-            else{
-                echo "Error: username does not exist or invalid recipient or invalid message.<br>";
-            }
-        }
-    ?>
+    if ($recipient === null) {
+        echo "Error: Recipient does not exist.<br>";
+        return;
+    }
+
+    // Get recipient's public key and encryption method
+    $public_key_row = $db->fetchOne(
+        "SELECT public_key, method FROM public_keys WHERE username = ?",
+        [$to_username],
+        "s"
+    );
+
+    if ($public_key_row === null || !valid_public_key($public_key_row['public_key'], $public_key_row['method'])) {
+        echo "Error: Recipient's public key is invalid or missing.<br>";
+        return;
+    }
+
+    $public_key = $public_key_row['public_key'];
+    $encryption_method = $public_key_row['method'];
+
+    // Encrypt the message
+    $encrypted_message = encrypt_message($public_key, $message, $encryption_method);
+
+    // Insert the message
+    $success = $db->execute(
+        "INSERT INTO messages (`from`, `to`, `message`, `method`) VALUES (?, ?, ?, ?)",
+        [$from_username, $to_username, $encrypted_message, $encryption_method],
+        "ssss"
+    );
+
+    if ($success) {
+        echo "Success: message sent from $from_username to $to_username using $encryption_method.<br>";
+    } else {
+        echo "Error: Failed to send message.<br>";
+    }
+}
+?>
+
 
     <hr style="border: 1px solid black;">
 
@@ -515,40 +535,40 @@ if (isset($_POST['save_keys']) && isset($_SESSION['user']) && isset($_SESSION['p
 
 <?php
 // Display all the encrypted messages sent to the current user securely
-if (isset($_SESSION['user']) && isset($_POST['view_messages'])) {
+if (isset($_SESSION['user'], $_POST['view_messages'])) {
     $username = $_SESSION['user'];
 
-    $stmt = $conn->prepare("SELECT `id`, `from`, `to`, `message`, `method` FROM `messages` WHERE `to` = ?");
-    if ($stmt === false) {
-        die("Prepare failed: " . $conn->error);
-    }
+    try {
+        // Fetch all messages sent to the current user
+        $messages = $db->fetchAll(
+            "SELECT `id`, `from`, `to`, `message`, `method` FROM `messages` WHERE `to` = ? ORDER BY `id` ASC",
+            [$username],
+            "s"
+        );
 
-    $stmt->bind_param("s", $username);
+        if (empty($messages)) {
+            echo "No messages found.<br>";
+        } else {
+            echo "Retrieved messages successfully.<br><br>";
+            foreach ($messages as $row) {
+                echo "[id=" . htmlspecialchars($row['id']) . "] ";
+                echo htmlspecialchars($row['from']) . " --> " . htmlspecialchars($row['to']) . " (" . htmlspecialchars($row['method']) . "): ";
 
-    if ($stmt->execute()) {
-        $result = $stmt->get_result();
-        echo "Retrieved messages successfully.<br><br>";
-
-        while ($row = $result->fetch_assoc()) {
-            echo "[id=" . htmlspecialchars($row['id']) . "] ";
-            echo htmlspecialchars($row['from']) . " --> " . htmlspecialchars($row['to']) . " (" . htmlspecialchars($row['method']) . "): ";
-
-            // display encrypted message to user in scrollable box
-            echo '<div style="display:inline-block;max-height:300px;overflow-y:auto;padding:10px;border:1px solid #ccc;background:#f9f9f9;font-family:monospace;white-space:pre;">';
-            echo chunk_split(htmlspecialchars($row['message']), 64, "\n");
-            echo '</div><br>';
+                // display encrypted message to user in scrollable box
+                echo '<div style="display:inline-block;max-height:300px;overflow-y:auto;padding:10px;border:1px solid #ccc;background:#f9f9f9;font-family:monospace;white-space:pre;">';
+                echo chunk_split(htmlspecialchars($row['message']), 64, "\n");
+                echo '</div><br>';
+            }
         }
-    } else {
-        echo "Error executing query: " . $stmt->error;
+    } catch (Exception $e) {
+        echo "Error fetching messages: " . $e->getMessage() . "<br>";
     }
-
-    $stmt->close();
 }
 ?>
 
 
 <?php
-// decrypt messages sent to the current user using uploaded secret key file
+// Decrypt messages sent to the current user using uploaded secret key file
 if (isset($_SESSION['user']) && isset($_POST['decrypt_messages']) && isset($_POST['encryption_method'])) {
     $username = $_SESSION['user'];
     $encryption_method = $_POST['encryption_method'];
@@ -558,7 +578,7 @@ if (isset($_SESSION['user']) && isset($_POST['decrypt_messages']) && isset($_POS
         return;
     }
 
-    // move secret key file to temp location
+    // Move secret key file to temp location
     $tmp_name = $_FILES['secret_key_file']['tmp_name'];
     $seckey_tempfile = make_tempfile('seckey_');
     if (!move_uploaded_file($tmp_name, $seckey_tempfile) && !copy($tmp_name, $seckey_tempfile)) {
@@ -566,26 +586,24 @@ if (isset($_SESSION['user']) && isset($_POST['decrypt_messages']) && isset($_POS
         return;
     }
 
-    // read the secret key file into a string
+    // Read the secret key file into a string
     $secret_key_contents = trim(file_get_contents($seckey_tempfile));
     if ($secret_key_contents === false || !valid_secret_key($secret_key_contents, $encryption_method)) {
         echo "Error: Invalid secret key.";
         return;
     }
 
-    // prepare SQL statement
-    $stmt = $conn->prepare("SELECT `id`, `from`, `to`, `message`, `method` FROM `messages` WHERE `to` = ?");
-    if ($stmt === false) {
-        die("Prepare failed: " . $conn->error);
-    }
+    try {
+        // Fetch all messages for this user
+        $messages = $db->fetchAll(
+            "SELECT `id`, `from`, `to`, `message`, `method` FROM `messages` WHERE `to` = ?",
+            [$username],
+            "s"
+        );
 
-    $stmt->bind_param("s", $username);
-
-    if ($stmt->execute()) {
-        $result = $stmt->get_result();
         echo "Retrieved messages successfully...<br>Trying to decrypt messages...<br><br>";
 
-        while ($row = $result->fetch_assoc()) {
+        foreach ($messages as $row) {
             echo "[id=" . htmlspecialchars($row['id']) . "] ";
             echo htmlspecialchars($row['from']) . " --> " . htmlspecialchars($row['to']) . ": ";
 
@@ -604,14 +622,12 @@ if (isset($_SESSION['user']) && isset($_POST['decrypt_messages']) && isset($_POS
             @unlink($ct_tempfile);
             echo "<br>";
         }
-    } else {
-        echo "Error executing query: " . $stmt->error;
-    }
-
-    $stmt->close();
-
-    if (file_exists($seckey_tempfile)) {
-        @unlink($seckey_tempfile);
+    } catch (Exception $e) {
+        echo "Error fetching messages: " . $e->getMessage();
+    } finally {
+        if (file_exists($seckey_tempfile)) {
+            @unlink($seckey_tempfile);
+        }
     }
 }
 ?>
