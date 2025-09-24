@@ -534,12 +534,10 @@ if (isset($_SESSION['user'], $_POST['to'], $_POST['message'])) {
     </form>
 
 <?php
-// Display all the encrypted messages sent to the current user securely
-if (isset($_SESSION['user'], $_POST['view_messages'])) {
-    $username = $_SESSION['user'];
-
+// helper function to display messages depending on whether decryption is requested
+function display_messages(Database $db, string $username, string $seckey_tempfile = null, string $encryption_method = null) {
     try {
-        // Fetch all messages sent to the current user
+        // Fetch all messages for this user
         $messages = $db->fetchAll(
             "SELECT `id`, `from`, `to`, `message`, `method` FROM `messages` WHERE `to` = ? ORDER BY `id` ASC",
             [$username],
@@ -548,89 +546,96 @@ if (isset($_SESSION['user'], $_POST['view_messages'])) {
 
         if (empty($messages)) {
             echo "No messages found.<br>";
-        } else {
-            echo "Retrieved messages successfully.<br><br>";
-            foreach ($messages as $row) {
-                echo "[id=" . htmlspecialchars($row['id']) . "] ";
-                echo htmlspecialchars($row['from']) . " --> " . htmlspecialchars($row['to']) . " (" . htmlspecialchars($row['method']) . "): ";
+            return;
+        }
 
-                // display encrypted message to user in scrollable box
+        echo $seckey_tempfile ? 
+            "Retrieved messages successfully...<br>Trying to decrypt messages...<br><br>" :
+            "Retrieved messages successfully.<br><br>";
+
+        foreach ($messages as $row) {
+            echo "[id=" . htmlspecialchars($row['id']) . "] ";
+            echo htmlspecialchars($row['from']) . " --> " . htmlspecialchars($row['to']);
+            if (!$seckey_tempfile) {
+                echo " (" . htmlspecialchars($row['method']) . ")";
+            }
+            echo ": ";
+
+            if ($seckey_tempfile && $encryption_method) {
+                // Only decrypt messages that match encryption method
+                if ($row['method'] !== $encryption_method) {
+                    echo "[different encryption method]<br>";
+                    continue;
+                }
+
+                $ct_tempfile = make_tempfile('ct_');
+                file_put_contents($ct_tempfile, $row['message']);
+
+                $out = run_decrypt_with_files($seckey_tempfile, $ct_tempfile, $encryption_method);
+                echo htmlspecialchars($out);
+
+                @unlink($ct_tempfile);
+                echo "<br>";
+            } else {
+                // Display encrypted message
                 echo '<div style="display:inline-block;max-height:300px;overflow-y:auto;padding:10px;border:1px solid #ccc;background:#f9f9f9;font-family:monospace;white-space:pre;">';
                 echo chunk_split(htmlspecialchars($row['message']), 64, "\n");
                 echo '</div><br>';
             }
         }
+
     } catch (Exception $e) {
         echo "Error fetching messages: " . $e->getMessage() . "<br>";
     }
 }
 ?>
 
+<?php
+// View messages (encrypted) if "View Messages" button is pressed
+if (isset($_SESSION['user'], $_POST['view_messages'])) {
+    $username = $_SESSION['user'];
+    display_messages($db, $username);
+}
+?>
 
 <?php
-// Decrypt messages sent to the current user using uploaded secret key file
-if (isset($_SESSION['user']) && isset($_POST['decrypt_messages']) && isset($_POST['encryption_method'])) {
+// Decrypt messages if secret key file is uploaded
+if (isset($_SESSION['user'], $_POST['decrypt_messages'], $_POST['encryption_method'])) {
     $username = $_SESSION['user'];
     $encryption_method = $_POST['encryption_method'];
 
+    // ensure the secret key file was uploaded without errors
     if (!isset($_FILES['secret_key_file']) || $_FILES['secret_key_file']['error'] !== UPLOAD_ERR_OK) {
         echo "Error: Secret key file is required.";
         return;
     }
 
-    // Move secret key file to temp location
+    // create a temporary file to store the uploaded secret key
     $tmp_name = $_FILES['secret_key_file']['tmp_name'];
     $seckey_tempfile = make_tempfile('seckey_');
+
+    // move the uploaded file to the temp location
     if (!move_uploaded_file($tmp_name, $seckey_tempfile) && !copy($tmp_name, $seckey_tempfile)) {
         echo "Error: Failed to store uploaded secret key.";
         return;
     }
 
-    // Read the secret key file into a string
+    // read and validate the secret key
     $secret_key_contents = trim(file_get_contents($seckey_tempfile));
     if ($secret_key_contents === false || !valid_secret_key($secret_key_contents, $encryption_method)) {
         echo "Error: Invalid secret key.";
         return;
     }
 
-    try {
-        // Fetch all messages for this user
-        $messages = $db->fetchAll(
-            "SELECT `id`, `from`, `to`, `message`, `method` FROM `messages` WHERE `to` = ?",
-            [$username],
-            "s"
-        );
+    // display decrypted messages to the user
+    display_messages($db, $username, $seckey_tempfile, $encryption_method);
 
-        echo "Retrieved messages successfully...<br>Trying to decrypt messages...<br><br>";
-
-        foreach ($messages as $row) {
-            echo "[id=" . htmlspecialchars($row['id']) . "] ";
-            echo htmlspecialchars($row['from']) . " --> " . htmlspecialchars($row['to']) . ": ";
-
-            if ($encryption_method !== $row['method']) {
-                echo "[different encryption method]<br>";
-                continue;
-            }
-
-            $ciphertext = $row['message'];
-            $ct_tempfile = make_tempfile('ct_');
-            file_put_contents($ct_tempfile, $ciphertext);
-
-            $out = run_decrypt_with_files($seckey_tempfile, $ct_tempfile, $encryption_method);
-            echo htmlspecialchars($out);
-
-            @unlink($ct_tempfile);
-            echo "<br>";
-        }
-    } catch (Exception $e) {
-        echo "Error fetching messages: " . $e->getMessage();
-    } finally {
-        if (file_exists($seckey_tempfile)) {
-            @unlink($seckey_tempfile);
-        }
+    if (file_exists($seckey_tempfile)) {
+        @unlink($seckey_tempfile);
     }
 }
 ?>
+
 
 
     <?php
