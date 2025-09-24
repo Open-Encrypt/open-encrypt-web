@@ -1,11 +1,16 @@
 # open-encrypt
-Full-stack encrypted messaging application using lattice-based methods in Python + PHP + SQL.
 
-**NOTE**: This is a demo for educational purposes only. It is not meant for real-world use.
+Full-stack encrypted messaging application using lattice-based methods in Rust + PHP + SQL.
 
-**ENCRYPTION METHODS**: ring-LWE, module-LWE
+## Disclaimer
 
-**RESOURCES**:
+This is a demo for educational purposes only. It is not meant for real-world use.
+
+## Encryption methods 
+
+ring-LWE, module-LWE
+
+## Resources
 
 - ring-LWE in Python: https://blog.openmined.org/build-an-homomorphic-encryption-scheme-from-scratch-with-python/
 - ring-LWE math: https://math.colorado.edu/~kstange/teaching-resources/crypto/RingLWE-notes.pdf
@@ -16,20 +21,25 @@ Full-stack encrypted messaging application using lattice-based methods in Python
 
 ---
 
-**SQL**: 
+## SQL
 
-- Three tables are required to store login_info, messages, and public_keys.
+- Three tables are required to store `login_info`, `messages`, and `public_keys`.
 - Passwords are hashed using standard hashing. 
 - Secure, random tokens stored for user sessions.
-- Messages are stored encrypted. The inflation ratio is ~13.7 for ring-LWE.
-- For ring-LWE, public keys are a `string` representing two (cyclotomic, modular) polynomials as `int` arrays.
-- For module-LWE, public keys are a `string` representing a matrix `A` and vector `t` with (cyclotomic, modular) polynomial coefficients.
+- Messages are stored encrypted on the server in a SQL database.
+- For both ring-LWE and module-LWE, messages are stored as compressed and encoded base64 strings.
 
-**PHP**:
+## PHP
 
 Used to handle basic account creation, login, and SQL insertions/lookups. 
 
-**Python**:
+## Rust
 
-Python scripts are executed directly using `shell_exec`. Output is printed and passed back as a string.
-  
+Rust binaries are executed directly using `shell_exec`.
+
+Currently using Rust crates `ring-lwe` v0.1.8 and `module-lwe` v0.1.5. 
+
+- https://crates.io/crates/ring-lwe
+- https://crates.io/crates/module-lwe
+
+Able to handle both command line arguments and files as input.
