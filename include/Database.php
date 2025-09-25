@@ -67,5 +67,22 @@ class Database {
         $stmt->close();
         return $count;
     }
+
+    // Utility for EXISTS checks
+    public function exists(string $table, string $column, $value): bool {
+        $query = "SELECT COUNT(*) FROM `$table` WHERE `$column` = ?";
+        $stmt = $this->conn->prepare($query);
+        if (!$stmt) {
+            throw new Exception("Prepare failed: " . $this->conn->error);
+        }
+
+        $stmt->bind_param("s", $value);
+        $stmt->execute();
+        $stmt->bind_result($count);
+        $stmt->fetch();
+        $stmt->close();
+
+        return $count > 0;
+    }
 }
 ?>

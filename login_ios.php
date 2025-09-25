@@ -2,7 +2,9 @@
     error_reporting(E_ALL);
     ini_set('display_errors', '1');
     // form a connection to the SQL database
-    include_once 'db_config.php';
+    include_once 'include/db_config.php';
+    include_once 'include/Database.php';
+    $db = new Database($conn);
     header('Content-Type: application/json'); // Set the content type to JSON
     $response = array();
     $response['status'] = "failure";
@@ -13,55 +15,56 @@
 ?>
 
 <?php
-// validate form input
-function validate($user_input,$max_len,$type= "input",&$response){
-    if (empty($user_input)) {
-        $response['error'] = "Invalid $type: cannot be blank.";
-        return False;
+// validate username input from form
+function validate_username(string $username, int $max_len, array &$response): bool {
+    if (empty($username)) {
+        error_log("Error: " . "username is empty.");
+        return false;
     }
     // To check that username only contains alphabets, numbers, and underscores 
-    elseif (!preg_match("/^[a-zA-Z0-9_]*$/", $user_input)) {
-        $response['error'] = "Invalid $type: only letters, numbers, and underscores are allowed.";
-        return False;
+    if (!preg_match("/^[a-zA-Z0-9_]*$/", $username)) {
+        error_log("Error: " . "username contains invalid characters.");
+        return false;
     }
-    elseif (strlen($user_input) > $max_len) {
-        $response['error'] = "Invalid $type: must be less than 14 characters.";
-        return False;
+    if (strlen($username) > $max_len) {
+        error_log("Error: " . "username is too long: " . strlen($username));
+        return false;
     }
-    else{
-        return True;
+    return true;
+}
+// validate password
+function validate_password(string $password, int $max_len = 24, array &$response): bool {
+    if (empty($password)) {
+        error_log("Error: " . "password is empty.");
+        return false;
     }
+    if (!preg_match("/^[a-zA-Z0-9_-]*$/", $password)) {
+        error_log("Error: " . "password contains invalid characters.");
+        return false;
+    }
+    if (strlen($password) > $max_len) {
+        error_log("Error: " . "password is too long: " . strlen($password));
+        return false;
+    }
+    return true;
 }
 ?>
 
 <?php
-//check that the username exists in the database
-function username_exists($username,$conn,&$response){
-    $sql_unique = "SELECT COUNT(*) FROM login_info WHERE username = '$username'";
-    try{
-        if ($result = mysqli_query($conn, $sql_unique)) {
-            $row = $result->fetch_assoc();
-            if($row['COUNT(*)'] > 0){
-                return True;
-            }
-            else{
-                $response['error'] = "Username does not exist.";
-                return False;
-            }
+// Store the generated login token in the login_info table
+function store_token(Database $db, string $username, string $token, array &$response): void {
+    try {
+        $ok = $db->execute(
+            "UPDATE login_info SET token = ? WHERE username = ?",
+            [$token, $username],
+            "ss"
+        );
+
+        if (!$ok) {
+            $response['error'] = "Failed to update token for $username.";
         }
-    }
-    catch (Exception $e) {
-        $response['error'] = $sql_unique . "-->" . mysqli_error($conn);
-    }
-}
-//store the generated login token in the login_info database
-function store_token($username,$conn,$token){
-    $sql_store_token = "UPDATE login_info SET token = '$token' WHERE username = '$username'";
-    try{
-        mysqli_query($conn, $sql_store_token);
-    }
-    catch(Exception $e) {
-        $response['error'] = "Error: " . $sql_insert . "|" . mysqli_error($conn);
+    } catch (Exception $e) {
+        $response['error'] = "store_token exception: " . $e->getMessage();
     }
 }
 ?>
@@ -75,30 +78,37 @@ $username = "";
 $valid_username = False;
 if(isset($data['username'])){
     $username = $data['username'];
-    $valid_username = validate($username,14,"username",$response) && username_exists($username,$conn,$response);
+    $valid_username = validate_username($username,14,$response) && $db->exists('login_info', 'username', $to_username);
 }
 $password = "";
 $valid_password = False;
 if(isset($data['password'])){
     $password = $data["password"];
-    $valid_password = validate($password,14,"password",$response);
+    $valid_password = validate_password($password,24,$response);
 }
 
-//if both username and password are valid, login
-if ($valid_username && $valid_password){
+// If both username and password are valid, attempt login
+if ($valid_username && $valid_password) {
+    try {
+        $row = $db->fetchOne(
+            "SELECT password FROM login_info WHERE username = ?",
+            [$username],
+            "s"
+        );
 
-    // form the sql string with the username and hashed password to check
-    $sql_check = "SELECT password FROM login_info WHERE username = '$username'";
-    if ($result = mysqli_query($conn, $sql_check)) {
-        $row = $result->fetch_assoc();
-        if(password_verify($password,$row['password'])){
-            $response['status'] = 'success';
-            $response['token'] = generate_token();
-            store_token($username,$conn,$response['token']);
+        if ($row) {
+            if (password_verify($password, $row['password'])) {
+                $response['status'] = 'success';
+                $response['token'] = generate_token();
+                store_token($db, $username, $response['token'], $response);
+            } else {
+                $response['error'] = "Invalid password.";
+            }
+        } else {
+            $response['error'] = "Username not found.";
         }
-    } 
-    else {
-        $response['error'] = $sql_check . "|" . mysqli_error($conn);
+    } catch (Exception $e) {
+        $response['error'] = "Login exception: " . $e->getMessage();
     }
 }
 ?>

@@ -16,7 +16,7 @@ $response['status'] = 'failure';
 
 <?php
 // fetch the token from the database and verify it matches the given token
-function verify_token($db, $username, $token) {
+function verify_token(Database $db, string $username, string $token) {
     try {
         // fetchOne returns the first column of the first row (or null if no row)
         $stored_token = $db->fetchOne(
@@ -37,7 +37,7 @@ function verify_token($db, $username, $token) {
     }
 }
 //decrypt a message using the secret key
-function decrypt_message($secret_key,$ciphertext,$encryption_method="ring_lwe"){
+function decrypt_message(string $secret_key, string $ciphertext, string $encryption_method="ring_lwe"){
     $binary_path = "/var/www/open-encrypt.com/html/";
     $command = escapeshellcmd(
         $binary_path 
@@ -52,7 +52,7 @@ function decrypt_message($secret_key,$ciphertext,$encryption_method="ring_lwe"){
     return $decrypted_string;
 }
 // Encrypt a message using the given public key
-function encrypt_message($public_key, $plaintext, $encryption_method = "ring_lwe") {
+function encrypt_message(string $public_key, string $plaintext, string $encryption_method = "ring_lwe") {
     $binary_path = "/var/www/open-encrypt.com/html/";
     $binary = ($encryption_method == "ring_lwe" ? "ring-lwe-v0.1.8" : "module-lwe-v0.1.5");
     $binary_full = $binary_path . $binary;
@@ -92,64 +92,70 @@ function encrypt_message($public_key, $plaintext, $encryption_method = "ring_lwe
     return $encrypted_string;
 }
 // validate user input for secret keys
-function valid_secret_key($secret_key, $encryption_method = "ring_lwe") {
+function valid_secret_key(string $secret_key, string $encryption_method = "ring_lwe") {
     // check if secret key is empty
     if (empty($secret_key)) {
+        error_log("Error: " . "secret key is empty.");
         return false;
     }
 
     // check if it's a valid base64 string
     if (!preg_match("/^[A-Za-z0-9+\/]+={0,2}$/",$secret_key)) {
-        echo "Error: " . "secret key is not valid base64 string.";
+        error_log("Error: " . "secret key is not valid base64 string.");
         return false;
     }
 
     // optional: enforce max length depending on method
     if ($encryption_method === "ring_lwe" && strlen($secret_key) > 10936) {
+        error_log("Error: " . "ring-lwe secret key is too long: " . strlen($secret_key));
         return false;
     }
     if ($encryption_method === "module_lwe" && strlen($secret_key) > 43704) {
+        error_log("Error: " . "module-lwe secret key is too long: " . strlen($secret_key));
         return false;
     }
 
     return true;
 }
 // validate user input for public keys
-function valid_public_key($public_key, $encryption_method = "ring_lwe") {
+function valid_public_key(string $public_key, string $encryption_method = "ring_lwe") {
     // check if public key is empty
     if (empty($public_key)) {
-        echo "Error: " . "public key is empty.";
+        error_log("Error: " . "public key is empty.");
         return false;
     }
 
     // check if it's a valid base64 string
     if (!preg_match("/^[A-Za-z0-9+\/]+={0,2}$/",$public_key)) {
-        echo "Error: " . "public key is not valid base64 string.";
+        error_log("Error: " . "public key is not a valid base64 string.");
         return false;
     }
 
     // optional: enforce max length depending on method
     if ($encryption_method === "ring_lwe" && strlen($public_key) > 21856) { // adjust size as needed
-        echo "Error: " . "public key exceeds maximum length for ring_lwe.";
+        error_log("Error: " . "ring-lwe public key exceeds maximum length: " . strlen($public_key));
         return false;
     }
     if ($encryption_method === "module_lwe" && strlen($public_key) > 393228) {
-        echo "Error: " . "public key exceeds maximum length for module_lwe.";
+        error_log("Error: " . "module-lwe public key exceeds maximum length: " . strlen($public_key));
         return false;
     }
 
     return true;
 }
 // validate username input from form
-function valid_username($username,$max_len){
+function valid_username(string $username, int $max_len){
     if (empty($username)) {
+        error_log("Error: " . "username is empty.");
         return false;
     }
     // To check that username only contains alphabets, numbers, and underscores 
     if (!preg_match("/^[a-zA-Z0-9_]*$/", $username)) {
+        error_log("Error: " . "username contains invalid characters.");
         return false;
     }
     if (strlen($username) > $max_len) {
+        error_log("Error: " . "username is too long: " . strlen($username));
         return false;
     }
     return true;
@@ -157,24 +163,27 @@ function valid_username($username,$max_len){
 // validate message input from form
 function valid_message($message,$max_len){
     if (empty($message)) {
+        error_log("Error: " . "message is empty.");
         return false;
     }
     // To check that message only contains alphabets, numbers, underscores, spaces
-    if (!preg_match("/^[a-zA-Z0-9_ !?.:;~@#,()+=&$]*$/", $message)) {
+    if (!preg_match("/^[a-zA-Z0-9_ !?.:;~@#,()+=&$-]*$/", $message)) {
+        error_log("Error: " . "message contains invalid characters.");
         return false;
     }
     if (strlen($message) > $max_len) {
+        error_log("Error: " . "message is too long: " . strlen($message));
         return false;
     }
     return true;
 }
 // Fetch messages for a given user
-function get_messages($db, $username, $secret_key, &$response, $encryption_method = "ring_lwe") {
+function get_messages(Database $db, string $username, string $secret_key, array &$response, string $encryption_method = "ring_lwe") {
     $response['from'] = [];
     $response['to'] = [];
     $response['messages'] = [];
 
-    $valid_secret_key = valid_secret_key($secret_key);
+    $valid_secret_key = valid_secret_key($secret_key, $encryption_method);
 
     try {
         // fetchAll returns an array of associative arrays
@@ -210,42 +219,31 @@ function get_messages($db, $username, $secret_key, &$response, $encryption_metho
         error_log("get_messages exception: " . $e->getMessage());
     }
 }
-// function to check whether a username exists in a given table
-function username_exists($db, $username, $table, &$response) {
-    try {
-        $count = $db->fetchOne(
-            "SELECT COUNT(*) FROM `$table` WHERE `username` = ?",
-            [$username],
-            "s"
-        );
-
-        return $count > 0;
-    } catch (Exception $e) {
-        $response['error'] = "Exception: " . $e->getMessage();
-        return false;
-    }
-}
 // Retrieve the public key from the database for the given username
-function get_public_key($db, $username, &$response) {
+function get_public_key(Database $db, string $username, array &$response): ?string {
     try {
         if ($db->exists('public_keys', 'username', $username)) {
-            $row = $db->fetchRow(
+            $row = $db->fetchOne(
                 "SELECT `public_key` FROM `public_keys` WHERE `username` = ?",
                 [$username],
                 "s"
             );
+            $response['public_key'] = $row['public_key'];
+            $response['status'] = "success";
             return $row['public_key'] ?? null;
         } else {
-            $response['error'] = "Username does not exist in public_keys table.";
+            $response['error'] = "No public key for $username";
             return null;
         }
     } catch (Exception $e) {
-        $response['error'] = "Database exception: " . $e->getMessage();
+        $response['error'] = "Exception in get_public_key: " . $e->getMessage();
+        error_log("Exception during get_public_key for username: $username: " . $e->getMessage());
         return null;
     }
 }
+
 // Define a function which generates public and private keys using the Rust binary
-function generate_keys(&$response, $encryption_method = "ring_lwe") {
+function generate_keys(array &$response, string $encryption_method = "ring_lwe") {
     $binary_path = "/var/www/open-encrypt.com/html/";
     $binary = $encryption_method === "ring_lwe" ? "ring-lwe-v0.1.8" : "module-lwe-v0.1.5";
     $command = escapeshellcmd($binary_path . $binary . " keygen");
@@ -265,37 +263,35 @@ function generate_keys(&$response, $encryption_method = "ring_lwe") {
     $response['status'] = "success";
 }
 
-// Function to store public key in the database using the Database class
-function save_public_key($db, $username, $public_key, &$response) {
+function save_public_key(Database $db, string $username, string $public_key, array &$response) {
     try {
-        if (!$db->exists('public_keys', 'username', $username)) {
-            // Insert new public key
-            $db->execute(
-                "INSERT INTO public_keys (username, public_key, method) VALUES (?, ?, ?)",
-                [$username, $public_key, $encryption_method],
-                "sss"
+        // Check if they already have a public key stored
+        if ($db->exists('public_keys', 'username', $username)) {
+            // Update
+            $ok = $db->execute(
+                "UPDATE `public_keys` SET `public_key` = ? WHERE `username` = ?",
+                [$public_key, $username],
+                "ss"
             );
-            $response['status'] = "success";
-            error_log("Public key inserted successfully for username: $username");
         } else {
-            // Update existing public key
-            $db->execute(
-                "UPDATE public_keys SET public_key = ?, method = ? WHERE username = ?",
-                [$public_key, $encryption_method, $username],
-                "sss"
+            // Insert
+            $ok = $db->execute(
+                "INSERT INTO `public_keys` (`username`, `public_key`) VALUES (?, ?)",
+                [$username, $public_key],
+                "ss"
             );
-            $response['status'] = "success";
-            error_log("Public key updated successfully for username: $username");
         }
+
+        $response['status'] = $ok ? "success" : "failure";
     } catch (Exception $e) {
         $response['status'] = "failure";
-        $response['error'] = "Database error: " . $e->getMessage();
+        $response['error'] = "Exception in save_public_key: " . $e->getMessage();
         error_log("Exception during save_public_key for username: $username: " . $e->getMessage());
     }
 }
 
 // Function for sending messages
-function send_message($db, $from_username, $to_username, $message, &$response, $encryption_method = "ring_lwe") {
+function send_message(Database $db, string $from_username, string $to_username, string $message, array &$response, string $encryption_method = "ring_lwe") {
     // Validate recipient and message
     if (!valid_username($to_username, 14)) {
         $response['error'] = "Error: Invalid recipient.";
@@ -321,6 +317,10 @@ function send_message($db, $from_username, $to_username, $message, &$response, $
 
     // Encrypt the message using Rust binary
     $encrypted_message = encrypt_message($public_key, $message, $encryption_method);
+    if (empty($encrypted_message)) {
+        $response['error'] = "Encryption failed: empty result.";
+        return;
+    }
 
     // Insert the message into the messages table
     try {
