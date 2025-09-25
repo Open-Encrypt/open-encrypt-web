@@ -78,7 +78,7 @@ $username = "";
 $valid_username = False;
 if(isset($data['username'])){
     $username = $data['username'];
-    $valid_username = validate_username($username,14,$response) && $db->exists('login_info', 'username', $to_username);
+    $valid_username = validate_username($username,14,$response) && $db->exists('login_info', 'username', $username);
 }
 $password = "";
 $valid_password = False;
