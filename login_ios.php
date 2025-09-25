@@ -1,6 +1,8 @@
 <?php
     error_reporting(E_ALL);
-    ini_set('display_errors', '1');
+    ini_set('log_errors', 1);      // Enable error logging
+    ini_set('error_log', '/var/www/open-encrypt.com/html/error.log');  // Absolute path to the error log file
+    ini_set('display_errors', 1);  // Disable displaying errors to users
     // form a connection to the SQL database
     include_once 'include/db_config.php';
     include_once 'include/Database.php';
@@ -106,9 +108,11 @@ if ($valid_username && $valid_password) {
             }
         } else {
             $response['error'] = "Username not found.";
+            error_log("Error: " . "Username not found: " . $username);
         }
     } catch (Exception $e) {
         $response['error'] = "Login exception: " . $e->getMessage();
+        error_log("Exception: " . $e->getMessage());
     }
 }
 ?>

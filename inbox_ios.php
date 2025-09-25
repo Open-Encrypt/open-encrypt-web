@@ -183,6 +183,8 @@ function get_messages(Database $db, string $username, string $secret_key, array 
     $response['to'] = [];
     $response['messages'] = [];
 
+    error_log("running get_messages with secret key: " . $secret_key);
+
     $valid_secret_key = valid_secret_key($secret_key, $encryption_method);
 
     try {
