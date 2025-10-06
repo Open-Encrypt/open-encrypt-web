@@ -256,6 +256,7 @@ function generate_keys(array &$response, string $encryption_method = "ring_lwe")
     } catch (Exception $e) {
         $response['error'] = "Key generation failed: " . $e->getMessage();
         $response['status'] = "failure";
+        error_log("Exception during get_public_key: " . $e->getMessage());
         return;
     }
 
