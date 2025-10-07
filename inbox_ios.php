@@ -11,7 +11,16 @@ header('Content-Type: application/json'); // Set the content type to JSON
 $response = array();
 // Get the raw POST data (JSON input)
 $data = json_decode(file_get_contents('php://input'), true);
-error_log("decoded json data from POST: " . print_r($data, true));
+// Log receipt of POST request with minimal info
+if ($data) {
+    // Log only minimal diagnostic info — not full keys or tokens
+    $username = isset($data['username']) ? $data['username'] : 'unknown';
+    $action   = isset($data['action']) ? $data['action'] : 'none';
+    
+    error_log("POST received for user '{$username}', action '{$action}'.");
+} else {
+    error_log("Empty or invalid JSON in POST.");
+}
 $response['status'] = 'failure';
 ?>
 
@@ -241,6 +250,7 @@ function get_public_key(Database $db, string $username, array &$response): ?stri
             );
             $response['public_key'] = $row['public_key'];
             $response['status'] = "success";
+            $response['error'] = null;
             return $row['public_key'] ?? null;
         } else {
             error_log("No public key found for user: " . $username);
