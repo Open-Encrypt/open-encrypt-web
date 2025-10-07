@@ -4,9 +4,7 @@ Full-stack encrypted messaging application using lattice-based methods in Rust +
 
 ## iOS
 
-iOS app is in development:
-
-[https://github.com/jacksonwalters/open-encrypt-ios](https://github.com/jacksonwalters/open-encrypt-ios)
+iOS app is in development: [https://github.com/jacksonwalters/open-encrypt-ios](https://github.com/jacksonwalters/open-encrypt-ios)
 
 ## Disclaimer
 
