@@ -319,24 +319,24 @@ function save_public_key(Database $db, string $username, string $public_key, arr
 function send_message(Database $db, string $from_username, string $to_username, string $message, array &$response, string $encryption_method = "ring_lwe") {
     // Validate recipient and message
     if (!valid_username($to_username, 14)) {
-        $response['error'] = "Error: Invalid recipient.";
+        $response['error'] = "Invalid recipient.";
         return;
     }
     if (!valid_message($message, 240)) {
-        $response['error'] = "Error: Invalid message.";
+        $response['error'] = "Invalid message.";
         return;
     }
 
     // Check if recipient exists
     if (!$db->exists('login_info', 'username', $to_username)) {
-        $response['error'] = "Error: Recipient username does not exist.";
+        $response['error'] = "Recipient username does not exist.";
         return;
     }
 
     // Fetch recipient public key
     $public_key = get_public_key($db, $to_username, $response);
     if (empty($public_key)) {
-        $response['error'] = "Error: Could not retrieve recipient's public key.";
+        $response['error'] = "Could not retrieve recipient's public key.";
         return;
     }
 

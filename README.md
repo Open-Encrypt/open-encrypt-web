@@ -1,5 +1,7 @@
 # open-encrypt
 
+[![License: MIT](https://img.shields.io/badge/License-MIT-brightgreen.svg)](https://opensource.org/licenses/MIT)
+
 Full-stack encrypted messaging application using lattice-based methods in Rust + PHP + SQL.
 
 ## iOS
