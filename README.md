@@ -2,6 +2,12 @@
 
 Full-stack encrypted messaging application using lattice-based methods in Rust + PHP + SQL.
 
+## iOS
+
+iOS app is in development:
+
+[https://github.com/jacksonwalters/open-encrypt-ios](https://github.com/jacksonwalters/open-encrypt-ios)
+
 ## Disclaimer
 
 This is a demo for educational purposes only. It is not meant for real-world use.
