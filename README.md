@@ -39,11 +39,9 @@ Used to handle basic account creation, login, and SQL insertions/lookups.
 
 ## Rust
 
-Rust binaries are executed directly using `shell_exec`.
+Rust binaries are executed directly using `shell_exec`. Uses both command line arguments and files as input.
 
 Currently using Rust crates `ring-lwe` v0.1.8 and `module-lwe` v0.1.5. 
 
 - https://crates.io/crates/ring-lwe
 - https://crates.io/crates/module-lwe
-
-Able to handle both command line arguments and files as input.
