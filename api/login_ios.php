@@ -1,9 +1,11 @@
 <?php
     error_reporting(E_ALL);
-    ini_set('display_errors', '1');
+    ini_set('log_errors', 1);      // Enable error logging
+    ini_set('error_log', '/var/www/open-encrypt.com/html/error.log');  // Absolute path to the error log file
+    ini_set('display_errors', 1);  // Disable displaying errors to users
     // form a connection to the SQL database
-    include_once 'include/db_config.php';
-    include_once 'include/Database.php';
+    include_once '../include/db_config.php';
+    include_once '../include/Database.php';
     $db = new Database($conn);
     header('Content-Type: application/json'); // Set the content type to JSON
     $response = array();
@@ -48,6 +50,9 @@ function validate_password(string $password, int $max_len = 24, array &$response
     }
     return true;
 }
+?>
+
+<?php
 // Store the generated login token in the login_info table
 function store_token(Database $db, string $username, string $token, array &$response): void {
     try {
@@ -75,7 +80,7 @@ $username = "";
 $valid_username = False;
 if(isset($data['username'])){
     $username = $data['username'];
-    $valid_username = validate_username($username,14,$response) && !$db->exists('login_info', 'username', $username);
+    $valid_username = validate_username($username,14,$response) && $db->exists('login_info', 'username', $username);
 }
 $password = "";
 $valid_password = False;
@@ -84,28 +89,30 @@ if(isset($data['password'])){
     $valid_password = validate_password($password,24,$response);
 }
 
-// If both username and password are valid, register/login
+// If both username and password are valid, attempt login
 if ($valid_username && $valid_password) {
     try {
-        // Hash the password to 60 characters with salt
-        $hashed_password = password_hash($password, PASSWORD_DEFAULT);
-
-        // Insert username + hashed password into login_info
-        $ok = $db->execute(
-            "INSERT INTO login_info (username, password) VALUES (?, ?)",
-            [$username, $hashed_password],
-            "ss"
+        $row = $db->fetchOne(
+            "SELECT password FROM login_info WHERE username = ?",
+            [$username],
+            "s"
         );
 
-        if ($ok) {
-            $response['status'] = 'success';
-            $response['token'] = generate_token();
-            store_token($db, $username, $response['token'], $response);
+        if ($row) {
+            if (password_verify($password, $row['password'])) {
+                $response['status'] = 'success';
+                $response['token'] = generate_token();
+                store_token($db, $username, $response['token'], $response);
+            } else {
+                $response['error'] = "Invalid password.";
+            }
         } else {
-            $response['error'] = "Failed to insert new user.";
+            $response['error'] = "Username not found.";
+            error_log("Error: " . "Username not found: " . $username);
         }
     } catch (Exception $e) {
-        $response['error'] = "Insert exception: " . $e->getMessage();
+        $response['error'] = "Login exception: " . $e->getMessage();
+        error_log("Exception: " . $e->getMessage());
     }
 }
 ?>
@@ -113,3 +120,4 @@ if ($valid_username && $valid_password) {
 <?php
 echo json_encode($response);
 ?>
+

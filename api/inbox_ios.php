@@ -4,8 +4,8 @@ ini_set('log_errors', 1);      // Enable error logging
 ini_set('error_log', '/var/www/open-encrypt.com/html/error.log');  // Absolute path to the error log file
 error_reporting(E_ALL);         // Report all types of errors
 // form a connection to the SQL database
-include_once 'include/db_config.php';
-include_once 'include/Database.php';
+include_once '../include/db_config.php';
+include_once '../include/Database.php';
 $db = new Database($conn);
 header('Content-Type: application/json'); // Set the content type to JSON
 $response = array();
