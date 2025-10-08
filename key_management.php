@@ -1,4 +1,9 @@
 <?php
+ini_set('display_errors', 0);  // Display errors in the browser (for debugging purposes)
+ini_set('log_errors', 1);      // Enable error logging
+ini_set('error_log', '/var/www/open-encrypt.com/html/error.log');  // Absolute path to the error log file
+error_reporting(E_ALL);         // Report all types of errors
+
 session_start();
 require_once 'include/utils.php';
 require_once 'include/db_config.php';
@@ -114,6 +119,7 @@ if (isset($_POST['save_keys'], $_SESSION['public_key'], $_SESSION['encryption_me
     $encryption_method = $_SESSION['encryption_method'];
 
     if (!valid_public_key($public_key, $encryption_method)) {
+        error_log("Error: Invalid public key for user " . htmlspecialchars($username));
         echo "<p>Error: Invalid public key.</p>";
     } else {
         $existing = $db->fetchOne("SELECT username FROM public_keys WHERE username = ?", [$username], "s");
@@ -135,6 +141,7 @@ if (isset($_POST['save_keys'], $_SESSION['public_key'], $_SESSION['encryption_me
             echo "<p>Public key saved successfully.</p>";
             unset($_SESSION['public_key'], $_SESSION['encryption_method']);
         } else {
+            error_log("Error: Failed to save public key for user " . htmlspecialchars($username));
             echo "<p>Error saving public key.</p>";
         }
     }
@@ -151,6 +158,7 @@ if (isset($_POST['view_keys'])) {
         echo chunk_split($public_key, 64, "\n");
         echo '</div>';
     } else {
+        error_log("Error: No valid public key found for user " . htmlspecialchars($username));
         echo "<p>No valid public key found.</p>";
     }
 }

@@ -69,6 +69,7 @@ if (isset($_POST['decrypt_messages'], $_POST['encryption_method'])) {
     $encryption_method = $_POST['encryption_method'];
 
     if (!isset($_FILES['secret_key_file']) || $_FILES['secret_key_file']['error'] !== UPLOAD_ERR_OK) {
+        error_log("Error: Secret key file upload error for user " . htmlspecialchars($username));
         echo "<p>Error: Secret key file is required.</p>";
         return;
     }
@@ -77,12 +78,14 @@ if (isset($_POST['decrypt_messages'], $_POST['encryption_method'])) {
     $seckey_tempfile = make_tempfile('seckey_');
 
     if (!move_uploaded_file($tmp_name, $seckey_tempfile) && !copy($tmp_name, $seckey_tempfile)) {
+        error_log("Error: Failed to store uploaded secret key for user " . htmlspecialchars($username));
         echo "<p>Error: Failed to store uploaded secret key.</p>";
         return;
     }
 
     $secret_key_contents = trim(file_get_contents($seckey_tempfile));
     if ($secret_key_contents === false || !valid_secret_key($secret_key_contents, $encryption_method)) {
+        error_log("Error: Invalid secret key for user " . htmlspecialchars($username));
         echo "<p>Error: Invalid secret key.</p>";
         return;
     }
