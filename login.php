@@ -22,6 +22,8 @@ if (isset($_SESSION['user'])) {
 $username = $_POST['username'] ?? '';
 $password = $_POST['password'] ?? '';
 
+$error_message = '';
+
 $valid_username = valid_username($username) && username_exists($db, $username);
 $valid_password = valid_password($password);
 
@@ -35,13 +37,16 @@ if ($valid_username && $valid_password) {
         $_SESSION['user'] = $username;
         redirect("inbox.php");
     } else {
-        error_log("Error: Incorrect password or user not found.");
+        $error_message = "<p style='color:red;'>Incorrect upassword.</p>";
+        error_log("Error: Incorrect password.");
     }
 } elseif ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $error_message = "<p style='color:red;'>Incorrect username or password.</p>";
     error_log("Invalid username or password.");
 }
 
 ?>
+
 <html>
 <head>
     <title>Open Encrypt - Login</title>
@@ -57,6 +62,8 @@ if ($valid_username && $valid_password) {
         Password: <input type="password" name="password"><br>
         <input type="submit" value="Login">
     </form>
+    
+    <?= $error_message ?>
 
     <?php
     if (isset($_SESSION['user'])) {

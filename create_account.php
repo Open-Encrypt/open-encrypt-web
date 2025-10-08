@@ -8,8 +8,12 @@ include_once 'include/db_config.php';
 include_once 'include/Database.php';
 require_once 'include/utils.php';
 $db = new Database($conn);
+?>
 
+<?php
 // ------------------ Handle form submission ------------------
+
+$error_message = '';
 
 $username = $_POST['username'] ?? '';
 $password = $_POST['password'] ?? '';
@@ -19,10 +23,12 @@ $valid_password = valid_password($password);
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (!$valid_username) {
+        $error_message = "<p style='color:red;'>Invalid or duplicate username.</p>";
         error_log("Error: Invalid or duplicate username.");
     }
 
     if (!$valid_password) {
+        $error_message = "<p style='color:red;'>Invalid password.</p>";
         error_log("Error: Invalid password.");
     }
 
@@ -36,6 +42,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         );
 
         if ($success) {
+            $error_message = "<p style='color:green;'>Account created successfully!</p>";
             error_log("New account created successfully for " . htmlspecialchars($username));
             // Start a session for the new user
             session_start();
@@ -44,6 +51,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             // Redirect to inbox
             redirect("inbox.php");
         } else {
+            $error_message = "<p style='color:red;'>Failed to create account.</p>";
             error_log("Error: Failed to create account.");
         }
     }
@@ -65,5 +73,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         Password: <input type="password" name="password"><br>
         <input type="submit" value="Create account">
     </form>
+
+    <?= $error_message ?>
 </body>
 </html>
