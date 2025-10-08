@@ -5,157 +5,16 @@
     ini_set('error_log', '/var/www/open-encrypt.com/html/error.log');  // Absolute path to the error log file
     error_reporting(E_ALL);         // Report all types of errors
 
-    // form a connection to the SQL database
-    include_once 'include/db_config.php';
-
-    // Initialize Database object
-    include_once 'include/Database.php';
+    
+    require_once 'include/db_config.php'; // form a connection to the SQL database
+    require_once 'include/Database.php'; // Initialize Database object
     $db = new Database($conn);
 
-    // include validation utilities
-    require_once 'include/utils.php';
+    require_once 'include/utils.php'; // include validation utilities
+    require_once 'include/encryption.php'; // include encryption utilities
 
     //start the session
     session_start();
-
-    //define a function which logs out the user
-    function logout(){
-        // Unset all of the session variables.
-        $_SESSION = array();
-
-        // If it's desired to kill the session, also delete the session cookie.
-        // Note: This will destroy the session, and not just the session data!
-        if (ini_get("session.use_cookies")) {
-            $params = session_get_cookie_params();
-                setcookie(session_name(), '', time() - 42000,
-                    $params["path"], $params["domain"],
-                    $params["secure"], $params["httponly"]
-                );
-            }
-                    
-        // Finally, destroy the session.
-        session_destroy();
-        redirect("login.php");
-    }
-    //define a function which generates public and private keys
-    function generate_keys($encryption_method = "ring_lwe"){
-        $binary_path = "/var/www/open-encrypt.com/html/bin/";
-        $command = escapeshellcmd($binary_path . ($encryption_method == "ring_lwe" ? "ring-lwe-v0.1.8" : "module-lwe-v0.1.5") . " keygen");
-        $json_string = shell_exec($command);
-        try{
-            $json_object = json_decode($json_string, true, 512, JSON_THROW_ON_ERROR);
-        }
-        catch(Exception $e){
-            print $e;
-        }
-        return $json_object;
-    }
-    // Encrypt a message using the given public key
-    function encrypt_message($public_key, $plaintext, $encryption_method = "ring_lwe") {
-        $binary_path = "/var/www/open-encrypt.com/html/bin/";
-        $binary = ($encryption_method == "ring_lwe" ? "ring-lwe-v0.1.8" : "module-lwe-v0.1.5");
-        $binary_full = $binary_path . $binary;
-
-        if ($encryption_method == "ring_lwe") {
-            // Inline key works fine for ring-lwe
-            $command = escapeshellcmd(
-                $binary_full 
-                . " encrypt "
-                . "--pubkey " 
-                . escapeshellarg(trim($public_key))
-                . " " 
-                . escapeshellarg(trim($plaintext))
-            ) . " 2>&1"; // capture stderr
-        } else {
-            // Write public key to a temp file for module-lwe
-            $tmp_pubkey_file = tempnam(sys_get_temp_dir(), "pubkey_");
-            file_put_contents($tmp_pubkey_file, trim($public_key));
-
-            $command = escapeshellcmd(
-                $binary_full 
-                . " encrypt "
-                . "--pubkey-file " 
-                . escapeshellarg($tmp_pubkey_file)
-                . " " 
-                . escapeshellarg(trim($plaintext))
-            ) . " 2>&1"; // capture stderr
-        }
-
-        $encrypted_string = shell_exec($command);
-
-        // Optionally clean up temp file
-        if (isset($tmp_pubkey_file) && file_exists($tmp_pubkey_file)) {
-            unlink($tmp_pubkey_file);
-        }
-
-        return $encrypted_string;
-    }
-    //decrypt a message using the secret key
-    function decrypt_message($secret_key,$ciphertext,$encryption_method="ring_lwe"){
-        $binary_path = "/var/www/open-encrypt.com/html/bin/";
-        $command = escapeshellcmd(
-            $binary_path 
-            . ($encryption_method == "ring_lwe" ? "ring-lwe-v0.1.8" : "module-lwe-v0.1.5") 
-            . " decrypt "
-            . "--secret "
-            . escapeshellarg(trim($secret_key)) 
-            . " " 
-            . escapeshellarg(trim($ciphertext))
-        ) . " 2>&1";
-        $decrypted_string = shell_exec($command);
-        return $decrypted_string;
-    }
-    function make_tempfile($prefix = 'oe_') {
-        $tmp = sys_get_temp_dir();
-        $name = tempnam($tmp, $prefix);
-        if ($name === false) {
-            throw new Exception("Unable to create temp file");
-        }
-        return $name;
-    }
-    // Decrypt using secret key and ciphertext files
-    function run_decrypt_with_files(string $seckey_file, string $ciphertext_file, string $encryption_method) : string {
-        $binary_path = "/var/www/open-encrypt.com/html/bin/";
-        $binary = ($encryption_method === "ring_lwe")
-            ? "ring-lwe-v0.1.8"
-            : "module-lwe-v0.1.5";
-
-        $cmd = $binary_path . $binary
-            . " decrypt --secret-file " . escapeshellarg($seckey_file)
-            . " --ciphertext-file " . escapeshellarg($ciphertext_file)
-            . " 2>&1";
-
-        $output = shell_exec($cmd);
-        return $output === null ? "" : $output;
-    }
-    // fetch the public key for a given username
-    function fetch_public_key(Database $db, string $username): ?string {
-        if (!username_exists($db, $username, "public_keys")) {
-            return null;
-        }
-
-        $row = $db->fetchOne(
-            "SELECT public_key FROM public_keys WHERE username = ?",
-            [$username],
-            "s"
-        );
-
-        return $row['public_key'] ?? null;
-    }
-    // Fetch encryption method for a username
-    function fetch_encryption_method(Database $db, string $username): ?string {
-        if (!username_exists($db, $username, "public_keys")) {
-            return null;
-        }
-
-        $row = $db->fetchOne(
-            "SELECT method FROM public_keys WHERE username = ?",
-            [$username],
-            "s"
-        );
-
-        return $row['method'] ?? null;
-    }
 ?>
 <html>
     <head>
@@ -553,10 +412,10 @@ if (isset($_SESSION['user'], $_POST['decrypt_messages'], $_POST['encryption_meth
 
 
 
-    <?php
-        if(array_key_exists('logout', $_POST)) { 
-            logout();
-        }
+<?php
+    if(array_key_exists('logout', $_POST)) { 
+        logout();
+    }
     ?>
 </body>
 </html>
