@@ -164,83 +164,8 @@
 
         return $row['method'] ?? null;
     }
-    // validate username input from form
-    function valid_username($username,$max_len){
-        if (empty($username)) {
-            return false;
-        }
-        // To check that username only contains alphabets, numbers, and underscores 
-        if (!preg_match("/^[a-zA-Z0-9_]*$/", $username)) {
-            return false;
-        }
-        if (strlen($username) > $max_len) {
-            return false;
-        }
-        return true;
-    }
-    // validate message input from form
-    function valid_message($message,$max_len){
-        if (empty($message)) {
-            return false;
-        }
-        // To check that message only contains alphabets, numbers, underscores, spaces
-        if (!preg_match("/^[a-zA-Z0-9_ !?.:;~@#,()+=&$-]*$/", $message)) {
-            return false;
-        }
-        if (strlen($message) > $max_len) {
-            return false;
-        }
-        return true;
-    }
-    // validate user input for secret keys
-    function valid_secret_key($secret_key, $encryption_method = "ring_lwe") {
-        // check if secret key is empty
-        if (empty($secret_key)) {
-            return false;
-        }
-
-        // check if it's a valid base64 string
-        if (!preg_match("/^[A-Za-z0-9+\/]+={0,2}$/",$secret_key)) {
-            echo "Error: " . "secret key is not valid base64 string.";
-            return false;
-        }
-
-        // optional: enforce max length depending on method
-        if ($encryption_method === "ring_lwe" && strlen($secret_key) > 10936) {
-            return false;
-        }
-        if ($encryption_method === "module_lwe" && strlen($secret_key) > 43704) {
-            return false;
-        }
-
-        return true;
-    }
-    // validate user input for public keys
-    function valid_public_key($public_key, $encryption_method = "ring_lwe") {
-        // check if public key is empty
-        if (empty($public_key)) {
-            echo "Error: " . "public key is empty.";
-            return false;
-        }
-
-        // check if it's a valid base64 string
-        if (!preg_match("/^[A-Za-z0-9+\/]+={0,2}$/",$public_key)) {
-            echo "Error: " . "public key is not valid base64 string.";
-            return false;
-        }
-
-        // optional: enforce max length depending on method
-        if ($encryption_method === "ring_lwe" && strlen($public_key) > 21856) { // adjust size as needed
-            echo "Error: " . "public key exceeds maximum length for ring_lwe.";
-            return false;
-        }
-        if ($encryption_method === "module_lwe" && strlen($public_key) > 393228) {
-            echo "Error: " . "public key exceeds maximum length for module_lwe.";
-            return false;
-        }
-
-        return true;
-    }
+    // include validation utilities
+    require_once 'include/utils.php';
 ?>
 <html>
     <head>
