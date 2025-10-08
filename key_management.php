@@ -24,12 +24,11 @@ $username = $_SESSION['user'];
     <title>Open Encrypt - Key Management</title>
 </head>
 <body>
-<h1>Open Encrypt</h1>
+<h1><a href="index.html">Open Encrypt</a></h1>
 
 <!-- Navigation bar -->
 <div>
-    <a href="index.html">Home</a> |
-    <a href="inbox.php">Inbox</a> |
+    <a href="inbox.php">Home</a> |
     <a href="send_message.php">Send Message</a> |
     <a href="view_messages.php">View Messages</a> |
     <a href="key_management.php">Key Management</a> |
@@ -39,7 +38,7 @@ $username = $_SESSION['user'];
 </div>
 <hr>
 
-<h2>Key Management</h2>
+<h2>Key Management: <?php echo htmlspecialchars($username); ?></h2>
 
 <!-- Key Generation Form -->
 <form method="post" style="display:inline-block; padding:5px; border:1px solid #000; background:#fff;">

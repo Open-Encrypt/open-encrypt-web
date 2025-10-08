@@ -40,8 +40,7 @@ $username = $_SESSION['user'];
 </div>
 <hr>
 
-<h2>View Messages</h2>
-<h2>User: <?php echo htmlspecialchars($username); ?></h2>
+<h2>View Messages: <?php echo htmlspecialchars($username); ?></h2>
 
 <!-- View encrypted messages -->
 <form method="post" style="margin-bottom:10px;">
