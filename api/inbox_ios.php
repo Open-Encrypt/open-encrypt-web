@@ -193,7 +193,7 @@ function valid_message($message,$max_len){
     return true;
 }
 // Fetch messages for a given user
-function get_messages(Database $db, string $username, string $secret_key, array &$response, string $encryption_method = "ring_lwe") {
+function get_messages(Database $db, string $username, string $secret_key, array &$response) {
     error_log("running get_messages for user: " . $username);
 
     // Initialize response arrays
@@ -202,10 +202,18 @@ function get_messages(Database $db, string $username, string $secret_key, array 
     $response['messages'] = [];
     $response['timestamps'] = [];
 
-    // Validate secret key
-    $valid_secret_key = valid_secret_key($secret_key, $encryption_method);
-
     try {
+        // Get recipient's encryption method
+        $public_key_row = $db->fetchOne(
+            "SELECT method FROM public_keys WHERE username = ?",
+            [$username],
+            "s"
+        );
+        $encryption_method = $public_key_row['method'] ?? "ring_lwe";
+
+        // Validate secret key
+        $valid_secret_key = valid_secret_key($secret_key, $encryption_method);
+
         // fetchAll returns an array of associative arrays
         $messages = $db->fetchAll(
             "SELECT `from`, `to`, `message`, `timestamp` FROM messages WHERE `to` = ? ORDER BY `id` ASC",
