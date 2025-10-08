@@ -190,8 +190,12 @@ function valid_public_key(string $public_key, string $encryption_method = "ring_
 // display messages for a user, optionally decrypting them if a secret key file is provided
 function display_messages(Database $db, string $username, ?string $seckey_tempfile = null, ?string $encryption_method = null) {
     try {
+        // now also select the timestamp
         $messages = $db->fetchAll(
-            "SELECT `id`,`from`,`to`,`message`,`method` FROM `messages` WHERE `to` = ? ORDER BY `id` ASC",
+            "SELECT `id`, `from`, `to`, `message`, `method`, `timestamp`
+             FROM `messages`
+             WHERE `to` = ?
+             ORDER BY `id` ASC",
             [$username],
             "s"
         );
@@ -209,6 +213,13 @@ function display_messages(Database $db, string $username, ?string $seckey_tempfi
             echo "<p>[id=" . htmlspecialchars($row['id']) . "] ";
             echo htmlspecialchars($row['from']) . " --> " . htmlspecialchars($row['to']);
             if (!$seckey_tempfile) echo " (" . htmlspecialchars($row['method']) . ")";
+            
+            // include timestamp if available
+            if (!empty($row['timestamp'])) {
+                $formatted_time = date("Y-m-d H:i:s", strtotime($row['timestamp']));
+                echo " <em>[" . htmlspecialchars($formatted_time) . "]</em>";
+            }
+
             echo ": ";
 
             if ($seckey_tempfile && $encryption_method) {
@@ -233,5 +244,6 @@ function display_messages(Database $db, string $username, ?string $seckey_tempfi
         echo "<p>Error fetching messages: " . htmlspecialchars($e->getMessage()) . "</p>";
     }
 }
+
 
 ?>
