@@ -50,7 +50,7 @@ function verify_token(Database $db, string $username, string $token) {
 //decrypt a message using the secret key
 function decrypt_message(string $secret_key, string $ciphertext, string $encryption_method="ring_lwe"){
     error_log("running decrypt_message with method: " . $encryption_method);
-    $binary_path = "/var/www/open-encrypt.com/html/";
+    $binary_path = "/var/www/open-encrypt.com/html/bin/";
     $command = escapeshellcmd(
         $binary_path 
         . ($encryption_method == "ring_lwe" ? "ring-lwe-v0.1.8" : "module-lwe-v0.1.5") 
@@ -66,7 +66,7 @@ function decrypt_message(string $secret_key, string $ciphertext, string $encrypt
 // Encrypt a message using the given public key
 function encrypt_message(string $public_key, string $plaintext, string $encryption_method = "ring_lwe") {
     error_log("running encrypt_message with method: " . $encryption_method);
-    $binary_path = "/var/www/open-encrypt.com/html/";
+    $binary_path = "/var/www/open-encrypt.com/html/bin/";
     $binary = ($encryption_method == "ring_lwe" ? "ring-lwe-v0.1.8" : "module-lwe-v0.1.5");
     $binary_full = $binary_path . $binary;
 
@@ -278,7 +278,7 @@ function get_public_key(Database $db, string $username, array &$response): ?stri
 // Define a function which generates public and private keys using the Rust binary
 function generate_keys(array &$response, string $encryption_method = "ring_lwe") {
     error_log("running generate_keys with method: " . $encryption_method);
-    $binary_path = "/var/www/open-encrypt.com/html/";
+    $binary_path = "/var/www/open-encrypt.com/html/bin/";
     $binary = $encryption_method === "ring_lwe" ? "ring-lwe-v0.1.8" : "module-lwe-v0.1.5";
     $command = escapeshellcmd($binary_path . $binary . " keygen");
     
