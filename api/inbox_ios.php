@@ -388,7 +388,8 @@ if(isset($data['username']) && isset($data['token']) && isset($data['action'])){
         }
         if($action == "generate_keys"){
             error_log("begin generating keys for user: " . $username);
-            generate_keys($response);
+            $encryption_method = $data['encryption_method'] ?? null;
+            generate_keys($response, $encryption_method);
             error_log("finished generating keys for user: " . $username);
         }
         if($action == "save_public_key"){
