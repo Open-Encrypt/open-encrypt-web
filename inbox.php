@@ -21,13 +21,21 @@
         <title>Open Encrypt</title>
     </head>
     <body>
-    <h1>Under construction.</h1>
+    <h1>Open Encrypt</h1>
+    <h2>Status: Development (10/8/2025)</h2>
 
-    <a href="index.html">Home</a>
-    <a href="inbox.php">Messages</a>
-    <form method="post">
-        <input type="submit" name="logout" class="button" value="Logout" /> 
-    </form>
+    <div>
+        <a href="index.html">Home</a> |
+        <a href="inbox.php">Inbox</a> |
+        <a href="send_message.php">Send Message</a> |
+        <a href="view_messages.php">View Messages</a> |
+        <a href="key_management.php">Key Management</a> |
+
+        <form method="post" style="display:inline; margin:0;">
+            <input type="submit" name="logout" value="Logout" style="cursor:pointer;">
+        </form>
+    </div>
+    <hr>
     
     <?php
     if (isset($_SESSION['user'])) {
