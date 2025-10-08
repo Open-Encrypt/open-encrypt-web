@@ -192,12 +192,12 @@ function display_messages(Database $db, string $username, ?string $seckey_tempfi
     try {
         // now also select the timestamp
         $messages = $db->fetchAll(
-            "SELECT `id`, `from`, `to`, `message`, `method`, `timestamp`
-             FROM `messages`
-             WHERE `to` = ?
-             ORDER BY `id` ASC",
-            [$username],
-            "s"
+            "SELECT `id`,`from`,`to`,`message`,`method`,`timestamp` 
+             FROM `messages` 
+             WHERE `to` = ? 
+             ORDER BY `id` DESC",
+             [$username],
+             "s"
         );
 
         if (empty($messages)) {
@@ -216,8 +216,10 @@ function display_messages(Database $db, string $username, ?string $seckey_tempfi
             
             // include timestamp if available
             if (!empty($row['timestamp'])) {
-                $formatted_time = date("Y-m-d H:i:s", strtotime($row['timestamp']));
-                echo " <em>[" . htmlspecialchars($formatted_time) . "]</em>";
+                $dt = new DateTime($row['timestamp'], new DateTimeZone('UTC'));
+                $dt->setTimezone(new DateTimeZone('America/New_York'));
+                $formatted_time = $dt->format('Y-m-d H:i:s');
+                echo " <em>[" . htmlspecialchars($formatted_time) . " EST]</em>";
             }
 
             echo ": ";
