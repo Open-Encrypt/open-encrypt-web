@@ -40,10 +40,10 @@ if ($valid_username && $valid_password) {
         $_SESSION['user'] = $username;
         redirect("inbox.php");
     } else {
-        echo "Error: Incorrect password or user not found.<br>";
+        error_log("Error: Incorrect password or user not found.");
     }
 } elseif ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    echo "Invalid username or password.<br>";
+    error_log("Invalid username or password.");
 }
 
 ?>
@@ -65,7 +65,7 @@ if ($valid_username && $valid_password) {
 
     <?php
     if (isset($_SESSION['user'])) {
-        echo "Logged in user: " . htmlspecialchars($_SESSION['user']);
+        error_log("Logged in user: " . htmlspecialchars($_SESSION['user']));
     }
     ?>
 </body>
