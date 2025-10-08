@@ -15,11 +15,9 @@
     // include validation utilities
     require_once 'include/utils.php';
 
+    //start the session
     session_start();
-    function redirect($url) {
-        header('Location: '.$url);
-        die();
-    }
+
     //define a function which logs out the user
     function logout(){
         // Unset all of the session variables.

@@ -12,11 +12,6 @@ $db = new Database($conn);
 
 session_start();
 
-function redirect($url) {
-    header('Location: ' . $url);
-    die();
-}
-
 // redirect if user is already logged in
 if (isset($_SESSION['user'])) {
     redirect("inbox.php");
