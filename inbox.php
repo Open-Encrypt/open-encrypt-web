@@ -25,15 +25,14 @@ if (!isset($_SESSION['user'])) {
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Inbox | Open Encrypt</title>
+    <title>Open Encrypt - Inbox</title>
 </head>
 <body>
-<h1>Open Encrypt</h1>
+<h1><a href="index.html">Open Encrypt</a></h1>
 <h2>Status: Development (10/8/2025)</h2>
 
 <div>
-    <a href="index.html">Home</a> |
-    <a href="inbox.php">Inbox</a> |
+    <a href="inbox.php">Home</a> |
     <a href="send_message.php">Send Message</a> |
     <a href="view_messages.php">View Messages</a> |
     <a href="key_management.php">Key Management</a> |
@@ -44,8 +43,8 @@ if (!isset($_SESSION['user'])) {
 <hr>
 
 <p>Welcome to your inbox, <?php echo htmlspecialchars($_SESSION['user']); ?>.</p>
-<br>
-<p>Please use "Key Generation" to generate public and secret keys.</p>
+<h3>Instructions:</h3>
+<p>Use "Key Generation" to generate public and secret keys.</p>
 <p>You'll want to save your secret key to a file in a safe place. Do not share this file.</p>
 <p>Save your public key to the server so that others can use it to send you messages.</p>
 <p>Optionally, copy or download your public key. You can view it once it's saved.</p>
