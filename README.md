@@ -14,8 +14,6 @@ This app is currently functional, but only meant for educational use, or as a de
 
 The encryption methods used are post-quantum, but have not been hardened against timing attacks or other side-channel attacks. This code has not been audited for security.
 
----
-
 ## Encryption methods (Rust)
 
 Rust binaries are executed directly using `shell_exec`. Uses both command line arguments and files as input.
@@ -45,3 +43,7 @@ Used to handle basic account creation, login, and SQL insertions/lookups.
 - Red Hat Post-Quantum/Lattices: https://www.redhat.com/en/blog/post-quantum-cryptography-lattice-based-cryptography
 - NIST Post-Quantum: https://csrc.nist.gov/projects/post-quantum-cryptography
 - Latticed-based cryptography: https://thelatticeclub.com
+
+## Copyright
+
+© 2025 Jackson Walters · MIT License
