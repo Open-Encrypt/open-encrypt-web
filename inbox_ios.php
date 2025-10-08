@@ -207,10 +207,11 @@ function get_messages(Database $db, string $username, string $secret_key, array 
     try {
         // fetchAll returns an array of associative arrays
         $messages = $db->fetchAll(
-            "SELECT `from`, `to`, `message` FROM messages WHERE `to` = ? ORDER BY `id` ASC",
+            "SELECT `from`, `to`, `message`, `timestamp` FROM messages WHERE `to` = ? ORDER BY `id` ASC",
             [$username],
             "s"
         );
+
 
         if (empty($messages)) {
             $response['status'] = "success";
@@ -222,6 +223,7 @@ function get_messages(Database $db, string $username, string $secret_key, array 
         foreach ($messages as $row) {
             $response['from'][] = $row['from'];
             $response['to'][] = $row['to'];
+            $response['timestamps'][] = $row['timestamp'];
 
             if ($valid_secret_key) {
                 // decrypt using Rust binary and base64-encoded key
