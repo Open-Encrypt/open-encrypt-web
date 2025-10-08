@@ -55,7 +55,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <title>Open Encrypt</title>
 </head>
 <body>
-    <h1>Under construction.</h1>
+    <h1>Open Encrypt</h1>
+    <h2>Status: Development (10/8/2025)</h2>
 
     <a href="index.html">Home</a>
     <a href="login.php">Login</a>
