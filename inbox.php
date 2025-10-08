@@ -1,7 +1,9 @@
 <?php
     ini_set('display_errors', '1');
     ini_set('display_startup_errors', 1);
-    error_reporting(E_ALL);
+    ini_set('log_errors', 1);      // Enable error logging
+    ini_set('error_log', '/var/www/open-encrypt.com/html/error.log');  // Absolute path to the error log file
+    error_reporting(E_ALL);         // Report all types of errors
 
     // form a connection to the SQL database
     include_once 'include/db_config.php';
@@ -9,6 +11,9 @@
     // Initialize Database object
     include_once 'include/Database.php';
     $db = new Database($conn);
+
+    // include validation utilities
+    require_once 'include/utils.php';
 
     session_start();
     function redirect($url) {
@@ -125,17 +130,6 @@
         $output = shell_exec($cmd);
         return $output === null ? "" : $output;
     }
-    // Check whether a username exists in the given table
-    function username_exists(Database $db, string $username, string $table): bool {
-        $allowed_tables = ["login_info", "public_keys"];
-        if (!in_array($table, $allowed_tables)) {
-            throw new Exception("Invalid table name");
-        }
-
-        $query = "SELECT COUNT(*) FROM `$table` WHERE username = ?";
-        $count = $db->count($query, [$username], "s");
-        return $count > 0;
-    }
     // fetch the public key for a given username
     function fetch_public_key(Database $db, string $username): ?string {
         if (!username_exists($db, $username, "public_keys")) {
@@ -164,8 +158,6 @@
 
         return $row['method'] ?? null;
     }
-    // include validation utilities
-    require_once 'include/utils.php';
 ?>
 <html>
     <head>

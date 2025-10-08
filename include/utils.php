@@ -1,9 +1,25 @@
 <?php
-// include/utils.php
+// utility functions for user validation and token management
 
 // generate a secure login token
 function generate_token(): string {
     return bin2hex(random_bytes(16)); // 32 characters
+}
+
+// Check whether a username exists in the given table
+function username_exists(Database $db, string $username, string $table = "login_info"): bool {
+    $allowed_tables = ["login_info", "public_keys"];
+    if (!in_array($table, $allowed_tables)) {
+        throw new Exception("Invalid table name");
+    }
+    $query = "SELECT COUNT(*) FROM `$table` WHERE username = ?";
+    $count = $db->count($query, [$username], "s");
+    return $count > 0;
+}
+
+// store login token in database
+function store_token(Database $db, string $username, string $token): bool {
+    return $db->execute("UPDATE login_info SET token = ? WHERE username = ?", [$token, $username], "ss");
 }
 
 /**
@@ -33,7 +49,7 @@ function valid_username(string $username, int $max_len = 14): bool {
  * - Only letters, numbers, underscores, hyphens
  * - Not longer than $max_len
  */
-function validate_password(string $password, int $max_len = 24): bool {
+function valid_password(string $password, int $max_len = 24): bool {
     if (empty($password)) return false;
     if (!preg_match("/^[a-zA-Z0-9_-]*$/", $password)) return false;
     if (strlen($password) > $max_len) return false;

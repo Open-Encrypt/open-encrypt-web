@@ -1,11 +1,13 @@
 <?php
-error_reporting(E_ALL);
-ini_set('display_errors', '1');
+ini_set('display_errors', 0);  // Display errors in the browser (for debugging purposes)
+ini_set('log_errors', 1);      // Enable error logging
+ini_set('error_log', '/var/www/open-encrypt.com/html/error.log');  // Absolute path to the error log file
+error_reporting(E_ALL);         // Report all types of errors
 
 // form a connection to the SQL database
 include_once 'include/db_config.php';
 include_once 'include/Database.php';
-include_once 'include/utils.php';
+require_once 'include/utils.php';
 $db = new Database($conn);
 
 session_start();
@@ -20,24 +22,13 @@ if (isset($_SESSION['user'])) {
     redirect("inbox.php");
 }
 
-// check if username exists in login_info
-function username_exists(Database $db, string $username): bool {
-    $count = $db->count("SELECT COUNT(*) FROM login_info WHERE username = ?", [$username], "s");
-    return $count > 0;
-}
-
-// store login token in database
-function store_token(Database $db, string $username, string $token): bool {
-    return $db->execute("UPDATE login_info SET token = ? WHERE username = ?", [$token, $username], "ss");
-}
-
 // ------------------ Process form submission ------------------
 
 $username = $_POST['username'] ?? '';
 $password = $_POST['password'] ?? '';
 
-$valid_username = validate_username($username) && username_exists($db, $username);
-$valid_password = validate_password($password);
+$valid_username = valid_username($username) && username_exists($db, $username);
+$valid_password = valid_password($password);
 
 if ($valid_username && $valid_password) {
     $row = $db->fetchOne("SELECT password FROM login_info WHERE username = ?", [$username], "s");
