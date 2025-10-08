@@ -37,6 +37,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         if ($success) {
             error_log("New account created successfully for " . htmlspecialchars($username));
+            // Start a session for the new user
+            session_start();
+            $_SESSION['user'] = $username;
+
+            // Redirect to inbox
+            redirect("inbox.php");
         } else {
             error_log("Error: Failed to create account.");
         }

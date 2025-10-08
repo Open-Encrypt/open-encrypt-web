@@ -1,6 +1,11 @@
 <?php
 // utility functions for user validation and token management
 
+function redirect($url) {
+    header('Location: ' . $url);
+    die();
+}
+
 // generate a secure login token
 function generate_token(): string {
     return bin2hex(random_bytes(16)); // 32 characters
