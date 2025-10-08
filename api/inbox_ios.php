@@ -337,12 +337,22 @@ function send_message(Database $db, string $from_username, string $to_username, 
         return;
     }
 
-    // Fetch recipient public key
-    $public_key = get_public_key($db, $to_username, $response);
-    if (empty($public_key)) {
-        $response['error'] = "Could not retrieve recipient's public key.";
+    // Get recipient's public key and encryption method
+    $public_key_row = $db->fetchOne(
+        "SELECT public_key, method FROM public_keys WHERE username = ?",
+        [$to_username],
+        "s"
+    );
+
+    //ensure the public key is present and valid
+    if ($public_key_row === null || !valid_public_key($public_key_row['public_key'], $public_key_row['method'])) {
+        error_log("Error: Recipient's public key is invalid or missing.");
+        $response['error'] = "Recipient's public key is invalid or missing.";
         return;
     }
+
+    $public_key = $public_key_row['public_key'];
+    $encryption_method = $public_key_row['method'];
 
     // Encrypt the message using Rust binary
     $encrypted_message = encrypt_message($public_key, $message, $encryption_method);
