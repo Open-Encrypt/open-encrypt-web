@@ -10,7 +10,7 @@ iOS app is in development: [https://github.com/jacksonwalters/open-encrypt-ios](
 
 ## Disclaimer
 
-This app is currently functional, but only meant for educational use, or as a demo.
+This app is meant for educational use, or as a demo.
 
 The encryption methods used have not been hardened against timing attacks or other side-channel attacks. 
 
