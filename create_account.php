@@ -19,11 +19,11 @@ $valid_password = valid_password($password);
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (!$valid_username) {
-        echo "Invalid or duplicate username.<br>";
+        error_log("Error: Invalid or duplicate username.");
     }
 
     if (!$valid_password) {
-        echo "Invalid password.<br>";
+        error_log("Error: Invalid password.");
     }
 
     if ($valid_username && $valid_password) {
@@ -36,9 +36,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         );
 
         if ($success) {
-            echo "New account created successfully for " . htmlspecialchars($username) . ".<br>";
+            error_log("New account created successfully for " . htmlspecialchars($username));
         } else {
-            echo "Error: Failed to create account.<br>";
+            error_log("Error: Failed to create account.");
         }
     }
 }
