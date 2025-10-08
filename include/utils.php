@@ -186,3 +186,52 @@ function valid_public_key(string $public_key, string $encryption_method = "ring_
     }
     return true;
 }
+
+// display messages for a user, optionally decrypting them if a secret key file is provided
+function display_messages(Database $db, string $username, ?string $seckey_tempfile = null, ?string $encryption_method = null) {
+    try {
+        $messages = $db->fetchAll(
+            "SELECT `id`,`from`,`to`,`message`,`method` FROM `messages` WHERE `to` = ? ORDER BY `id` ASC",
+            [$username],
+            "s"
+        );
+
+        if (empty($messages)) {
+            echo "<p>No messages found.</p>";
+            return;
+        }
+
+        echo $seckey_tempfile ?
+            "<p>Retrieved messages successfully... Decrypting messages...</p>" :
+            "<p>Retrieved messages successfully.</p>";
+
+        foreach ($messages as $row) {
+            echo "<p>[id=" . htmlspecialchars($row['id']) . "] ";
+            echo htmlspecialchars($row['from']) . " --> " . htmlspecialchars($row['to']);
+            if (!$seckey_tempfile) echo " (" . htmlspecialchars($row['method']) . ")";
+            echo ": ";
+
+            if ($seckey_tempfile && $encryption_method) {
+                // Only decrypt messages that match encryption method
+                if ($row['method'] !== $encryption_method) {
+                    echo "[different encryption method]</p>";
+                    continue;
+                }
+
+                $ct_tempfile = make_tempfile('ct_');
+                file_put_contents($ct_tempfile, $row['message']);
+                $out = run_decrypt_with_files($seckey_tempfile, $ct_tempfile, $encryption_method);
+                echo htmlspecialchars($out) . "</p>";
+                @unlink($ct_tempfile);
+            } else {
+                echo '<div style="display:inline-block; max-height:300px; overflow-y:auto; padding:5px; border:1px solid #ccc; background:#f9f9f9; font-family:monospace; white-space:pre;">';
+                echo chunk_split(htmlspecialchars($row['message']), 64, "\n");
+                echo '</div></p>';
+            }
+        }
+    } catch (Exception $e) {
+        echo "<p>Error fetching messages: " . htmlspecialchars($e->getMessage()) . "</p>";
+    }
+}
+
+?>
