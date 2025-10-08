@@ -131,7 +131,8 @@ function valid_password(string $password, int $max_len = 24): bool {
 function valid_message(string $message, int $max_len = 240): bool {
     if (empty($message)) return false;
     if (strlen($message) > $max_len) return false;
-    if (preg_match('/[[:cntrl:]&&[^\r\n\t]]/', $message)) return false; // Allow all printable characters except control characters
+    // Allow all printable characters except control characters
+    if (preg_match('/[[:cntrl:]&&[^\r\n\t]]/', $message)) return false;
     return true;
 }
 
