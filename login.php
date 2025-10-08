@@ -42,6 +42,7 @@ if ($valid_username && $valid_password) {
 }
 
 ?>
+
 <html>
 <head>
     <title>Open Encrypt - Login</title>
@@ -50,7 +51,7 @@ if ($valid_username && $valid_password) {
     <h1><a href="index.html">Open Encrypt</a></h1>
     <h2>Status: Development (10/8/2025)</h2>
 
-    <a href="create_account.php">Create Account</a>
+    <p><a href="create_account.php">Create Account</a></p>
 
     <form action="login.php" method="POST">
         Username: <input type="text" name="username" value="<?= htmlspecialchars($username) ?>"><br>
