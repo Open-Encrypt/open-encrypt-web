@@ -200,6 +200,7 @@ function get_messages(Database $db, string $username, string $secret_key, array 
     $response['from'] = [];
     $response['to'] = [];
     $response['messages'] = [];
+    $response['timestamps'] = [];
 
     // Validate secret key
     $valid_secret_key = valid_secret_key($secret_key, $encryption_method);
