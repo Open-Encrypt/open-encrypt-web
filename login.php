@@ -5,6 +5,7 @@ ini_set('display_errors', '1');
 // form a connection to the SQL database
 include_once 'include/db_config.php';
 include_once 'include/Database.php';
+include_once 'include/utils.php';
 $db = new Database($conn);
 
 session_start();
@@ -17,27 +18,6 @@ function redirect($url) {
 // redirect if user is already logged in
 if (isset($_SESSION['user'])) {
     redirect("inbox.php");
-}
-
-// generate a secure login token
-function generate_token(): string {
-    return bin2hex(random_bytes(16)); // 32 characters
-}
-
-// validate username
-function validate_username(string $username, int $max_len = 14): bool {
-    if (empty($username)) return false;
-    if (!preg_match("/^[a-zA-Z0-9_]*$/", $username)) return false;
-    if (strlen($username) > $max_len) return false;
-    return true;
-}
-
-// validate password
-function validate_password(string $password, int $max_len = 24): bool {
-    if (empty($password)) return false;
-    if (!preg_match("/^[a-zA-Z0-9_-]*$/", $password)) return false;
-    if (strlen($password) > $max_len) return false;
-    return true;
 }
 
 // check if username exists in login_info

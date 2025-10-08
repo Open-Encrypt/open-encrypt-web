@@ -1,6 +1,11 @@
 <?php
 // include/utils.php
 
+// generate a secure login token
+function generate_token(): string {
+    return bin2hex(random_bytes(16)); // 32 characters
+}
+
 /**
  * Validate a username.
  * Rules:
@@ -8,7 +13,7 @@
  *  - Only letters, numbers, underscores
  *  - Not longer than $max_len
  */
-function valid_username(string $username, int $max_len): bool {
+function valid_username(string $username, int $max_len = 14): bool {
     if (empty($username)) {
         return false;
     }
@@ -18,6 +23,20 @@ function valid_username(string $username, int $max_len): bool {
     if (strlen($username) > $max_len) {
         return false;
     }
+    return true;
+}
+
+/**
+ * Validate a password.
+ * Rules:
+ * - Non-empty
+ * - Only letters, numbers, underscores, hyphens
+ * - Not longer than $max_len
+ */
+function validate_password(string $password, int $max_len = 24): bool {
+    if (empty($password)) return false;
+    if (!preg_match("/^[a-zA-Z0-9_-]*$/", $password)) return false;
+    if (strlen($password) > $max_len) return false;
     return true;
 }
 
