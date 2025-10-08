@@ -46,9 +46,9 @@ if (!isset($_SESSION['user'])) {
 <h3>Instructions:</h3>
 <p>Use "Key Generation" to generate public and secret keys.</p>
 <p>You'll want to save your secret key to a file in a safe place. Do not share this file.</p>
-<p>Save your public key to the server so that others can use it to send you messages.</p>
-<p>Optionally, copy or download your public key. You can view it once it's saved.</p>
-<p>Once your keys are saved, send another use a message using their username.</p>
+<p>Save your public key to the server so that others can use it to send you messages. You can view the remote public key after it's saved.</p>
+<p>Optionally, copy or download your public key locally.</p>
+<p>Once your keys are saved, send another user a message using their username.</p>
 <p>To view encrypted messages, go to "View Messages" and click "View Encrypted Messages".</p>
 <p>To decrypt messages, upload your secret key file and select the encryption method you used when generating your keys. Then click "Decrypt Messages".</p>
 
