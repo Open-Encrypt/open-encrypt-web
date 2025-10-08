@@ -290,23 +290,23 @@ function generate_keys(array &$response, string $encryption_method = "ring_lwe")
     $response['status'] = "success";
 }
 
-function save_public_key(Database $db, string $username, string $public_key, array &$response) {
-    error_log("running save_public_key for user: " . $username);
+//save the public key to the database for the given username using the specified encryption method
+function save_public_key(Database $db, string $username, string $public_key, ?string $encryption_method, array &$response) {
+    error_log("running save_public_key for user: " . $username . ", method: " . ($encryption_method ?? "NULL"));
     try {
-        // Check if they already have a public key stored
         if ($db->exists('public_keys', 'username', $username)) {
             // Update
             $ok = $db->execute(
-                "UPDATE `public_keys` SET `public_key` = ? WHERE `username` = ?",
-                [$public_key, $username],
-                "ss"
+                "UPDATE `public_keys` SET `public_key` = ?, `method` = ? WHERE `username` = ?",
+                [$public_key, $encryption_method, $username],
+                "sss"
             );
         } else {
             // Insert
             $ok = $db->execute(
-                "INSERT INTO `public_keys` (`username`, `public_key`) VALUES (?, ?)",
-                [$username, $public_key],
-                "ss"
+                "INSERT INTO `public_keys` (`username`, `public_key`, `method`) VALUES (?, ?, ?)",
+                [$username, $public_key, $encryption_method],
+                "sss"
             );
         }
 
@@ -317,6 +317,7 @@ function save_public_key(Database $db, string $username, string $public_key, arr
         error_log("Exception during save_public_key for username: $username: " . $e->getMessage());
     }
 }
+
 
 // Function for sending messages
 function send_message(Database $db, string $from_username, string $to_username, string $message, array &$response, string $encryption_method = "ring_lwe") {
@@ -393,7 +394,9 @@ if(isset($data['username']) && isset($data['token']) && isset($data['action'])){
         if($action == "save_public_key"){
             error_log("begin saving public key for user: " . $username);
             $public_key = $data['public_key'];
-            save_public_key($db, $username,$public_key,$response);
+            $encryption_method = $data['encryption_method'] ?? null;
+            error_log("encryption method is: " . ($encryption_method ?? "NULL"));
+            save_public_key($db, $username,$public_key,$encryption_method,$response);
             error_log("finished saving public key for user: " . $username);
         }
         if($action == "send_message"){
