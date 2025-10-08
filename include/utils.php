@@ -6,9 +6,69 @@ function redirect($url) {
     die();
 }
 
+//define a function which logs out the user
+function logout(){
+    // Unset all of the session variables.
+    $_SESSION = array();
+
+    // If it's desired to kill the session, also delete the session cookie.
+    // Note: This will destroy the session, and not just the session data!
+    if (ini_get("session.use_cookies")) {
+        $params = session_get_cookie_params();
+            setcookie(session_name(), '', time() - 42000,
+                $params["path"], $params["domain"],
+                $params["secure"], $params["httponly"]
+            );
+        }
+                
+    // Finally, destroy the session.
+    session_destroy();
+    redirect("login.php");
+}
+
+// create a temporary file and return its name
+function make_tempfile($prefix = 'oe_') {
+    $tmp = sys_get_temp_dir();
+    $name = tempnam($tmp, $prefix);
+    if ($name === false) {
+        throw new Exception("Unable to create temp file");
+    }
+    return $name;
+}
+
 // generate a secure login token
 function generate_token(): string {
     return bin2hex(random_bytes(16)); // 32 characters
+}
+
+// fetch the public key for a given username
+function fetch_public_key(Database $db, string $username): ?string {
+    if (!username_exists($db, $username, "public_keys")) {
+        return null;
+    }
+
+    $row = $db->fetchOne(
+        "SELECT public_key FROM public_keys WHERE username = ?",
+        [$username],
+        "s"
+    );
+
+    return $row['public_key'] ?? null;
+}
+
+// Fetch encryption method for a username
+function fetch_encryption_method(Database $db, string $username): ?string {
+    if (!username_exists($db, $username, "public_keys")) {
+        return null;
+    }
+
+    $row = $db->fetchOne(
+        "SELECT method FROM public_keys WHERE username = ?",
+        [$username],
+        "s"
+    );
+
+    return $row['method'] ?? null;
 }
 
 // Check whether a username exists in the given table
