@@ -36,7 +36,7 @@
     }
     //define a function which generates public and private keys
     function generate_keys($encryption_method = "ring_lwe"){
-        $binary_path = "/var/www/open-encrypt.com/html/";
+        $binary_path = "/var/www/open-encrypt.com/html/bin/";
         $command = escapeshellcmd($binary_path . ($encryption_method == "ring_lwe" ? "ring-lwe-v0.1.8" : "module-lwe-v0.1.5") . " keygen");
         $json_string = shell_exec($command);
         try{
@@ -49,7 +49,7 @@
     }
     // Encrypt a message using the given public key
     function encrypt_message($public_key, $plaintext, $encryption_method = "ring_lwe") {
-        $binary_path = "/var/www/open-encrypt.com/html/";
+        $binary_path = "/var/www/open-encrypt.com/html/bin/";
         $binary = ($encryption_method == "ring_lwe" ? "ring-lwe-v0.1.8" : "module-lwe-v0.1.5");
         $binary_full = $binary_path . $binary;
 
@@ -89,7 +89,7 @@
     }
     //decrypt a message using the secret key
     function decrypt_message($secret_key,$ciphertext,$encryption_method="ring_lwe"){
-        $binary_path = "/var/www/open-encrypt.com/html/";
+        $binary_path = "/var/www/open-encrypt.com/html/bin/";
         $command = escapeshellcmd(
             $binary_path 
             . ($encryption_method == "ring_lwe" ? "ring-lwe-v0.1.8" : "module-lwe-v0.1.5") 
@@ -112,7 +112,7 @@
     }
     // Decrypt using secret key and ciphertext files
     function run_decrypt_with_files(string $seckey_file, string $ciphertext_file, string $encryption_method) : string {
-        $binary_path = "/var/www/open-encrypt.com/html/";
+        $binary_path = "/var/www/open-encrypt.com/html/bin/";
         $binary = ($encryption_method === "ring_lwe")
             ? "ring-lwe-v0.1.8"
             : "module-lwe-v0.1.5";
