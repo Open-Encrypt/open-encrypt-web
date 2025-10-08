@@ -1,39 +1,21 @@
 <?php
-error_reporting(E_ALL);
-ini_set('display_errors', '1');
+ini_set('display_errors', 0);  // Display errors in the browser (for debugging purposes)
+ini_set('log_errors', 1);      // Enable error logging
+ini_set('error_log', '/var/www/open-encrypt.com/html/error.log');  // Absolute path to the error log file
+error_reporting(E_ALL);         // Report all types of errors
 
 include_once 'include/db_config.php';
 include_once 'include/Database.php';
+require_once 'include/utils.php';
 $db = new Database($conn);
-
-// ------------------ Helper functions ------------------
-
-// validate username and ensure uniqueness
-function validate_username(Database $db, string $username, int $max_len = 14): bool {
-    if (empty($username)) return false;
-    if (!preg_match("/^[a-zA-Z0-9_]*$/", $username)) return false;
-    if (strlen($username) > $max_len) return false;
-
-    // Check uniqueness in the database
-    $count = $db->count("SELECT COUNT(*) FROM login_info WHERE username = ?", [$username], "s");
-    return $count === 0;
-}
-
-// validate password
-function validate_password(string $password, int $max_len = 24): bool {
-    if (empty($password)) return false;
-    if (!preg_match("/^[a-zA-Z0-9_-]*$/", $password)) return false;
-    if (strlen($password) > $max_len) return false;
-    return true;
-}
 
 // ------------------ Handle form submission ------------------
 
 $username = $_POST['username'] ?? '';
 $password = $_POST['password'] ?? '';
 
-$valid_username = validate_username($db, $username);
-$valid_password = validate_password($password);
+$valid_username = valid_username($username) && !username_exists($db, $username);
+$valid_password = valid_password($password);
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (!$valid_username) {

@@ -1,10 +1,13 @@
 <?php
-error_reporting(E_ALL);
-ini_set('display_errors', '1');
+ini_set('display_errors', 0);  // Display errors in the browser (for debugging purposes)
+ini_set('log_errors', 1);      // Enable error logging
+ini_set('error_log', '/var/www/open-encrypt.com/html/error.log');  // Absolute path to the error log file
+error_reporting(E_ALL);         // Report all types of errors
 
 // form a connection to the SQL database
 include_once 'include/db_config.php';
 include_once 'include/Database.php';
+require_once 'include/utils.php';
 $db = new Database($conn);
 
 session_start();
@@ -19,45 +22,13 @@ if (isset($_SESSION['user'])) {
     redirect("inbox.php");
 }
 
-// generate a secure login token
-function generate_token(): string {
-    return bin2hex(random_bytes(16)); // 32 characters
-}
-
-// validate username
-function validate_username(string $username, int $max_len = 14): bool {
-    if (empty($username)) return false;
-    if (!preg_match("/^[a-zA-Z0-9_]*$/", $username)) return false;
-    if (strlen($username) > $max_len) return false;
-    return true;
-}
-
-// validate password
-function validate_password(string $password, int $max_len = 24): bool {
-    if (empty($password)) return false;
-    if (!preg_match("/^[a-zA-Z0-9_-]*$/", $password)) return false;
-    if (strlen($password) > $max_len) return false;
-    return true;
-}
-
-// check if username exists in login_info
-function username_exists(Database $db, string $username): bool {
-    $count = $db->count("SELECT COUNT(*) FROM login_info WHERE username = ?", [$username], "s");
-    return $count > 0;
-}
-
-// store login token in database
-function store_token(Database $db, string $username, string $token): bool {
-    return $db->execute("UPDATE login_info SET token = ? WHERE username = ?", [$token, $username], "ss");
-}
-
 // ------------------ Process form submission ------------------
 
 $username = $_POST['username'] ?? '';
 $password = $_POST['password'] ?? '';
 
-$valid_username = validate_username($username) && username_exists($db, $username);
-$valid_password = validate_password($password);
+$valid_username = valid_username($username) && username_exists($db, $username);
+$valid_password = valid_password($password);
 
 if ($valid_username && $valid_password) {
     $row = $db->fetchOne("SELECT password FROM login_info WHERE username = ?", [$username], "s");
