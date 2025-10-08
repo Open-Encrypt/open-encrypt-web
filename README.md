@@ -12,7 +12,7 @@ iOS app is in development: [https://github.com/jacksonwalters/open-encrypt-ios](
 
 This app is currently functional, but only meant for educational use, or as a demo.
 
-The encryption methods used are post-quantum, but have not been hardened against timing attacks or other side-channel attacks. 
+The encryption methods used have not been hardened against timing attacks or other side-channel attacks. 
 
 This code has not been audited for security.
 
