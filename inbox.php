@@ -43,8 +43,15 @@ if (!isset($_SESSION['user'])) {
 </div>
 <hr>
 
-<p>Welcome, <?php echo htmlspecialchars($_SESSION['user']); ?>.</p>
-<p>This page is currently empty. Please use <a href="send_message.php">Send Message</a> or <a href="view_messages.php">View Messages</a>.</p>
+<p>Welcome to your inbox, <?php echo htmlspecialchars($_SESSION['user']); ?>.</p>
+<br>
+<p>Please use "Key Generation" to generate public and secret keys.</p>
+<p>You'll want to save your secret key to a file in a safe place. Do not share this file.</p>
+<p>Save your public key to the server so that others can use it to send you messages.</p>
+<p>Optionally, copy or download your public key. You can view it once it's saved.</p>
+<p>Once your keys are saved, send another use a message using their username.</p>
+<p>To view encrypted messages, go to "View Messages" and click "View Encrypted Messages".</p>
+<p>To decrypt messages, upload your secret key file and select the encryption method you used when generating your keys. Then click "Decrypt Messages".</p>
 
 <?php
 if (array_key_exists('logout', $_POST)) {
