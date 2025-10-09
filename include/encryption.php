@@ -55,14 +55,23 @@ function encrypt_message(string $public_key, string $plaintext, string $encrypti
         ) . " 2>&1"; // capture stderr
     }
 
-    $encrypted_string = shell_exec($command);
+    $output = [];
+    $return_var = 0;
+    exec($command, $output, $return_var);
+
+    if ($return_var !== 0) {
+        $error_message = "Rust decryption failed: " . implode("\n", $output);
+        error_log($error_message);
+        throw new Exception($error_message);
+    }
 
     // Optionally clean up temp file
     if (isset($tmp_pubkey_file) && file_exists($tmp_pubkey_file)) {
         unlink($tmp_pubkey_file);
     }
 
-    return $encrypted_string;
+    // Return first line if output is single-line; fallback to all lines
+    return $output[0] ?? implode("\n", $output);
 }
 
 /**

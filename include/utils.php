@@ -278,7 +278,13 @@ function send_message(Database $db, string $username, string $to_username, strin
         return ['success' => false, 'message' => "Recipient’s public key is invalid or missing."];
     }
 
-    $encrypted = encrypt_message($pub_row['public_key'], $message, $pub_row['method']);
+    try {
+        $encrypted = encrypt_message($pub_row['public_key'], $message, $pub_row['method']);
+    } catch (Exception $e) {
+        error_log("Encryption failed: " . $e->getMessage());
+        return ['success' => false, 'message' => "Encryption failed."];
+    }
+
     $success = $db->execute(
         "INSERT INTO messages (`from`,`to`,`message`,`method`) VALUES (?,?,?,?)",
         [$username, $to_username, $encrypted, $pub_row['method']],
