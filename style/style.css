@@ -176,3 +176,15 @@ input[type="file"] {
 .error-message {
     color: red;
 }
+
+.decryption-error {
+    display: inline-block;
+    max-width: 100%;
+    padding: 5px;
+    border: 1px solid #f00;
+    background: #ffecec;
+    color: #900; /* dark red text */
+    font-family: monospace;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+}
