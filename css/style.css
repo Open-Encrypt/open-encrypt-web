@@ -1,17 +1,12 @@
 /* -------------------------------
-   Global Styles
+   General Styles
 ---------------------------------*/
-* {
-    box-sizing: border-box;
-}
-
-html, body {
-    margin: 0;
-    padding: 0;
+body {
     font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0 1em;
     background-color: #f0f2f5;
     color: #111;
-    min-height: 100%;
 }
 
 h1, h2, h3 {
@@ -29,10 +24,6 @@ header {
     background-color: #333;
     color: #fff;
     padding: 0.5em 1em;
-    position: sticky;
-    top: 0;
-    z-index: 1000;
-    text-align: center;
 }
 
 header h1 a {
@@ -42,10 +33,6 @@ header h1 a {
 
 nav {
     margin-top: 0.5em;
-    display: flex;
-    justify-content: center;
-    flex-wrap: wrap; /* allows wrapping on small screens */
-    gap: 0.3em;
 }
 
 nav a,
@@ -55,7 +42,6 @@ nav .nav-link {
     padding: 0.5em 1em;
     display: inline-block;
     transition: background 0.2s, border-radius 0.2s;
-    min-height: 44px;     /* better tap target on mobile */
 }
 
 nav a:hover,
@@ -80,11 +66,10 @@ input[type="submit"],
     background-color: #333;
     color: #fff;
     font-size: 1em;
-    text-decoration: none;
+    text-decoration: none; /* removes underline for button-links */
     display: inline-block;
     border-radius: 4px;
     transition: background 0.2s, border-radius 0.2s;
-    min-height: 44px;
 }
 
 button:hover,
@@ -112,15 +97,6 @@ input[type="file"] {
     box-sizing: border-box;
 }
 
-/* Prevent overflow on small screens */
-input[type="text"],
-input[type="password"],
-input[type="file"],
-.message-form,
-.account-form {
-    max-width: 100%;
-}
-
 /* -------------------------------
    Message Boxes / Key Boxes
 ---------------------------------*/
@@ -133,10 +109,19 @@ input[type="file"],
     border: 1px solid #ccc;
     background: #f9f9f9;
     font-family: monospace;
-    white-space: pre-wrap;
-    word-wrap: break-word;
-    overflow-wrap: anywhere;
+    white-space: pre;
     margin-bottom: 0.5em;
+}
+
+/* -------------------------------
+   Mobile Nav
+---------------------------------*/
+@media (max-width: 600px) {
+    nav a,
+    nav .nav-link {
+        display: block;
+        margin: 0.2em 0;
+    }
 }
 
 /* -------------------------------
@@ -192,6 +177,7 @@ input[type="file"],
     color: red;
 }
 
+
 .decryption-error {
     display: inline-block;
     max-width: 100%;
@@ -203,40 +189,4 @@ input[type="file"],
     white-space: pre-wrap;
     word-wrap: break-word;
     overflow-wrap: anywhere;
-}
-
-/* -------------------------------
-   Mobile Responsive Adjustments
----------------------------------*/
-@media (max-width: 600px) {
-    nav {
-        flex-direction: column;
-        align-items: stretch;
-    }
-
-    nav a,
-    nav .nav-link {
-        display: block;
-        margin: 0.2em 0;
-        padding: 0.8em 1em;
-        text-align: center;
-        width: 100%;
-    }
-
-    .message-form,
-    .account-form {
-        width: 100%;
-        padding: 1em;
-        margin: 0.5em 0;
-    }
-
-    input[type="text"],
-    input[type="password"],
-    input[type="file"] {
-        max-width: 100%;
-    }
-
-    header h1 {
-        font-size: 1.5rem;
-    }
 }
