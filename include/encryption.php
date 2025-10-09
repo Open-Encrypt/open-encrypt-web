@@ -1,7 +1,11 @@
 <?php
 
-//define a function which generates public and private keys
-function generate_keys($encryption_method = "ring_lwe"){
+/** define a function which generates public and private keys
+ * 
+ *  @param string $encryption_method The encryption method to use (default: "ring_lwe")
+ *  @return array An associative array containing 'public_key' and 'secret_key'
+ */
+function generate_keys(string $encryption_method = "ring_lwe"){
     $binary_path = "/var/www/open-encrypt.com/html/bin/";
     $command = escapeshellcmd($binary_path . ($encryption_method == "ring_lwe" ? "ring-lwe-v0.1.8" : "module-lwe-v0.1.5") . " keygen");
     $json_string = shell_exec($command);
@@ -14,8 +18,14 @@ function generate_keys($encryption_method = "ring_lwe"){
     return $json_object;
 }
 
-// Encrypt a message using the given public key
-function encrypt_message($public_key, $plaintext, $encryption_method = "ring_lwe") {
+/** Encrypt a message using the given public key
+ * 
+ *  @param string $public_key The public key to use for encryption
+ *  @param string $plaintext The plaintext message to encrypt
+ *  @param string $encryption_method The encryption method to use (default: "ring_lwe")
+ *  @return string The encrypted ciphertext
+ */
+function encrypt_message(string $public_key, string $plaintext, string $encryption_method = "ring_lwe") : string {
     $binary_path = "/var/www/open-encrypt.com/html/bin/";
     $binary = ($encryption_method == "ring_lwe" ? "ring-lwe-v0.1.8" : "module-lwe-v0.1.5");
     $binary_full = $binary_path . $binary;
@@ -55,24 +65,49 @@ function encrypt_message($public_key, $plaintext, $encryption_method = "ring_lwe
     return $encrypted_string;
 }
 
-//decrypt a message using the secret key
-function decrypt_message($secret_key,$ciphertext,$encryption_method="ring_lwe"){
+/**
+ * Decrypt a message using the secret key
+ * 
+ * @param string $secret_key The secret key to use for decryption
+ * @param string $ciphertext The ciphertext to decrypt
+ * @param string $encryption_method The encryption method to use (default: "ring_lwe")
+ * @return string The decrypted plaintext
+ * @throws Exception if Rust decryption fails
+ */
+function decrypt_message(string $secret_key, string $ciphertext, string $encryption_method = "ring_lwe"): string {
     $binary_path = "/var/www/open-encrypt.com/html/bin/";
-    $command = escapeshellcmd(
-        $binary_path 
-        . ($encryption_method == "ring_lwe" ? "ring-lwe-v0.1.8" : "module-lwe-v0.1.5") 
-        . " decrypt "
-        . "--secret "
-        . escapeshellarg(trim($secret_key)) 
-        . " " 
-        . escapeshellarg(trim($ciphertext))
-    ) . " 2>&1";
-    $decrypted_string = shell_exec($command);
-    return $decrypted_string;
+    $binary = $encryption_method === "ring_lwe" ? "ring-lwe-v0.1.8" : "module-lwe-v0.1.5";
+
+    $command = $binary_path . $binary
+        . " decrypt --secret " . escapeshellarg(trim($secret_key))
+        . " " . escapeshellarg(trim($ciphertext))
+        . " 2>&1"; // capture stderr
+
+    $output = [];
+    $return_var = 0;
+    exec($command, $output, $return_var);
+
+    if ($return_var !== 0) {
+        $error_message = "Rust decryption failed: " . implode("\n", $output);
+        error_log($error_message);
+        throw new Exception($error_message);
+    }
+
+    // Return first line if output is single-line; fallback to all lines
+    return $output[0] ?? implode("\n", $output);
 }
 
-// Decrypt using secret key and ciphertext files
-function run_decrypt_with_files(string $seckey_file, string $ciphertext_file, string $encryption_method) : string {
+
+/**
+ * Decrypt using secret key and ciphertext files
+ * 
+ * @param string $seckey_file Path to the secret key file
+ * @param string $ciphertext_file Path to the ciphertext file
+ * @param string $encryption_method The encryption method to use (default: "ring_lwe")
+ * @return string The decrypted plaintext
+ * @throws Exception if Rust decryption fails
+ */
+function run_decrypt_with_files(string $seckey_file, string $ciphertext_file, string $encryption_method = "ring_lwe") : string {
     $binary_path = "/var/www/open-encrypt.com/html/bin/";
     $binary = ($encryption_method === "ring_lwe")
         ? "ring-lwe-v0.1.8"
@@ -81,10 +116,20 @@ function run_decrypt_with_files(string $seckey_file, string $ciphertext_file, st
     $cmd = $binary_path . $binary
         . " decrypt --secret-file " . escapeshellarg($seckey_file)
         . " --ciphertext-file " . escapeshellarg($ciphertext_file)
-        . " 2>&1";
+        . " 2>&1"; // capture stderr
 
-    $output = shell_exec($cmd);
-    return $output === null ? "" : $output;
+    $output = [];
+    $return_var = 0;
+    exec($cmd, $output, $return_var);
+
+    if ($return_var !== 0) {
+        $error_message = "Rust file decryption failed: " . implode("\n", $output);
+        error_log($error_message);
+        throw new Exception($error_message);
+    }
+
+    // Return first line if available; otherwise all lines
+    return $output[0] ?? implode("\n", $output);
 }
 
 ?>
