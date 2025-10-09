@@ -282,7 +282,7 @@ function send_message(Database $db, string $username, string $to_username, strin
         $encrypted = encrypt_message($pub_row['public_key'], $message, $pub_row['method']);
     } catch (Exception $e) {
         error_log("Encryption failed: " . $e->getMessage());
-        return ['success' => false, 'message' => "Encryption failed."];
+        return ['success' => false, 'message' => "Encryption failed." . $e->getMessage()];
     }
 
     $success = $db->execute(
