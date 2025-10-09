@@ -28,6 +28,7 @@ $username = $_SESSION['user'];
 </head>
 <body>
 <h1><a href="index.html">Open Encrypt</a></h1>
+<h2>Status: Development (10/8/2025)</h2>
 
 <div>
     <a href="inbox.php">Home</a> |
@@ -58,7 +59,6 @@ if (isset($_POST['to'], $_POST['message'])) {
     $to_username = $_POST['to'];
     $message = $_POST['message'];
     $result = send_message($db, $username, $to_username, $message);
-
     echo "<p>" . htmlspecialchars($result['message']) . "</p>";
 }
 ?>
