@@ -227,9 +227,9 @@ function display_messages(Database $db, string $username, ?string $seckey_tempfi
 
                 try {
                     $out = run_decrypt_with_files($seckey_tempfile, $ct_tempfile, $encryption_method);
-                    echo htmlspecialchars($out) . "</p>";
+                    echo '<div class="message-box">' . htmlspecialchars($out) . '</div>';
                 } catch (Exception $e) {
-                    echo "<strong>[Decryption failed: " . htmlspecialchars($e->getMessage()) . "]</strong></p>";
+                    echo '<div class="decryption-error">[Decryption failed: ' . htmlspecialchars($e->getMessage()) . ']</div>';
                 }
 
                 @unlink($ct_tempfile);
