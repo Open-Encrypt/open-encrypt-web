@@ -54,31 +54,12 @@ $username = $_SESSION['user'];
 </form>
 
 <?php
-// Send message logic
 if (isset($_POST['to'], $_POST['message'])) {
     $to_username = $_POST['to'];
     $message = $_POST['message'];
+    $result = send_message($db, $username, $to_username, $message);
 
-    if (!valid_username($to_username, 14)) { echo "<p>Error: Invalid recipient.</p>"; return; }
-    if (!valid_message($message, 240)) { echo "<p>Error: Invalid message.</p>"; return; }
-
-    $recipient = $db->fetchOne("SELECT username FROM login_info WHERE username = ?", [$to_username], "s");
-    if ($recipient === null) { echo "<p>Error: Recipient does not exist.</p>"; return; }
-
-    $pub_row = $db->fetchOne("SELECT public_key, method FROM public_keys WHERE username = ?", [$to_username], "s");
-    if ($pub_row === null || !valid_public_key($pub_row['public_key'], $pub_row['method'])) {
-        echo "<p>Error: Recipient's public key is invalid or missing.</p>"; return;
-    }
-
-    $encrypted = encrypt_message($pub_row['public_key'], $message, $pub_row['method']);
-    $success = $db->execute(
-        "INSERT INTO messages (`from`,`to`,`message`,`method`) VALUES (?,?,?,?)",
-        [$username, $to_username, $encrypted, $pub_row['method']],
-        "ssss"
-    );
-
-    echo $success ? "<p>Message sent successfully using {$pub_row['method']}.</p>" :
-                    "<p>Error sending message.</p>";
+    echo "<p>" . htmlspecialchars($result['message']) . "</p>";
 }
 ?>
 
