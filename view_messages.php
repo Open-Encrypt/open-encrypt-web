@@ -24,38 +24,46 @@ $username = $_SESSION['user'];
 <html>
 <head>
     <title>Open Encrypt - View Messages</title>
+    <link rel="stylesheet" href="style/style.css">
 </head>
 <body>
-<h1><a href="index.html">Open Encrypt</a></h1>
-<h2>Status: Development (10/8/2025)</h2>
 
-<div>
-    <a href="inbox.php">Home</a> |
-    <a href="send_message.php">Send Message</a> |
-    <a href="view_messages.php">View Messages</a> |
-    <a href="key_management.php">Key Management</a> |
-    <form method="post" style="display:inline; margin:0;">
-        <input type="submit" name="logout" value="Logout" style="cursor:pointer;">
-    </form>
-</div>
+<header>
+    <h1><a href="index.html">Open Encrypt</a></h1>
+    <h2>Status: Development (10/8/2025)</h2>
+    <nav>
+        <a href="inbox.php" class="nav-link">Home</a>
+        <a href="send_message.php" class="nav-link">Send Message</a>
+        <a href="view_messages.php" class="nav-link">View Messages</a>
+        <a href="key_management.php" class="nav-link">Key Management</a>
+        <form method="post" style="display:inline;">
+            <input type="submit" name="logout" value="Logout">
+        </form>
+    </nav>
+</header>
+
 <hr>
 
 <h2>View Messages: <?php echo htmlspecialchars($username); ?></h2>
 
-<!-- View encrypted messages -->
-<form method="post" style="margin-bottom:10px;">
-    <input type="submit" name="view_messages" value="View Encrypted Messages" />
+<!-- View Encrypted Messages -->
+<form method="post" class="message-form">
+    <input type="submit" name="view_messages" value="View Encrypted Messages">
 </form>
 
-<!-- Decrypt messages -->
-<form method="post" enctype="multipart/form-data">
+<!-- Decrypt Messages -->
+<form method="post" enctype="multipart/form-data" class="message-form">
     <label for="secret_key_file">Upload Secret Key File:</label>
-    <input type="file" id="secret_key_file" name="secret_key_file" accept=".txt,.key" required><br>
-    <input type="radio" id="ring_lwe" name="encryption_method" value="ring_lwe" checked>
-    <label for="ring_lwe">ring-LWE</label>
-    <input type="radio" id="module_lwe" name="encryption_method" value="module_lwe">
-    <label for="module_lwe">module-LWE</label><br>
-    <input type="submit" name="decrypt_messages" value="Decrypt Messages" />
+    <input type="file" id="secret_key_file" name="secret_key_file" accept=".txt,.key" required>
+
+    <div class="encryption-methods">
+        <input type="radio" id="ring_lwe" name="encryption_method" value="ring_lwe" checked>
+        <label for="ring_lwe">ring-LWE</label>
+        <input type="radio" id="module_lwe" name="encryption_method" value="module_lwe">
+        <label for="module_lwe">module-LWE</label>
+    </div>
+
+    <input type="submit" name="decrypt_messages" value="Decrypt Messages">
 </form>
 
 <?php
@@ -70,7 +78,7 @@ if (isset($_POST['decrypt_messages'], $_POST['encryption_method'])) {
 
     if (!isset($_FILES['secret_key_file']) || $_FILES['secret_key_file']['error'] !== UPLOAD_ERR_OK) {
         error_log("Error: Secret key file upload error for user " . htmlspecialchars($username));
-        echo "<p>Error: Secret key file is required.</p>";
+        echo '<div class="message-box">Error: Secret key file is required.</div>';
         return;
     }
 
@@ -79,14 +87,14 @@ if (isset($_POST['decrypt_messages'], $_POST['encryption_method'])) {
 
     if (!move_uploaded_file($tmp_name, $seckey_tempfile) && !copy($tmp_name, $seckey_tempfile)) {
         error_log("Error: Failed to store uploaded secret key for user " . htmlspecialchars($username));
-        echo "<p>Error: Failed to store uploaded secret key.</p>";
+        echo '<div class="message-box">Error: Failed to store uploaded secret key.</div>';
         return;
     }
 
     $secret_key_contents = trim(file_get_contents($seckey_tempfile));
     if ($secret_key_contents === false || !valid_secret_key($secret_key_contents, $encryption_method)) {
         error_log("Error: Invalid secret key for user " . htmlspecialchars($username));
-        echo "<p>Error: Invalid secret key.</p>";
+        echo '<div class="message-box">Error: Invalid secret key.</div>';
         return;
     }
 
