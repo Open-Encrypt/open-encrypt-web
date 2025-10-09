@@ -1,0 +1,178 @@
+/* -------------------------------
+   General Styles
+---------------------------------*/
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0 1em;
+    background-color: #f0f2f5;
+    color: #111;
+}
+
+h1, h2, h3 {
+    margin: 0.5em 0;
+}
+
+p {
+    margin: 0.5em 0;
+}
+
+/* -------------------------------
+   Header / Navigation
+---------------------------------*/
+header {
+    background-color: #333;
+    color: #fff;
+    padding: 0.5em 1em;
+}
+
+header h1 a {
+    color: #fff;
+    text-decoration: none;
+}
+
+nav {
+    margin-top: 0.5em;
+}
+
+nav a,
+nav .nav-link {
+    color: #fff;
+    text-decoration: none;
+    padding: 0.5em 1em;
+    display: inline-block;
+    transition: background 0.2s, border-radius 0.2s;
+}
+
+nav a:hover,
+nav .nav-link:hover {
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 4px;
+}
+
+nav form {
+    display: inline;
+}
+
+/* -------------------------------
+   Buttons (including links styled as buttons)
+---------------------------------*/
+button,
+input[type="submit"],
+.button-link {
+    cursor: pointer;
+    border: none;
+    padding: 0.5em 1em;
+    background-color: #333;
+    color: #fff;
+    font-size: 1em;
+    text-decoration: none; /* removes underline for button-links */
+    display: inline-block;
+    border-radius: 4px;
+    transition: background 0.2s, border-radius 0.2s;
+}
+
+button:hover,
+input[type="submit"]:hover,
+.button-link:hover {
+    background-color: #555;
+}
+
+/* -------------------------------
+   Forms & Inputs
+---------------------------------*/
+form {
+    margin: 1em 0;
+}
+
+input[type="text"],
+input[type="password"],
+input[type="file"] {
+    padding: 0.5em;
+    width: 100%;
+    max-width: 400px;
+    margin: 0.3em 0;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    box-sizing: border-box;
+}
+
+/* -------------------------------
+   Message Boxes / Key Boxes
+---------------------------------*/
+.message-box,
+.key-box {
+    display: inline-block;
+    max-height: 300px;
+    overflow-y: auto;
+    padding: 10px;
+    border: 1px solid #ccc;
+    background: #f9f9f9;
+    font-family: monospace;
+    white-space: pre;
+    margin-bottom: 0.5em;
+}
+
+/* -------------------------------
+   Mobile Nav
+---------------------------------*/
+@media (max-width: 600px) {
+    nav a,
+    nav .nav-link {
+        display: block;
+        margin: 0.2em 0;
+    }
+}
+
+/* -------------------------------
+   Forms (Send Message / Account)
+---------------------------------*/
+.message-form,
+.account-form {
+    max-width: 400px;
+    padding: 10px;
+    border: 1px solid #ccc;
+    background: #fff;
+    margin: 1em 0;
+    border-radius: 4px;
+}
+
+.message-form label,
+.account-form label {
+    display: block;
+    margin-bottom: 0.3em;
+    font-weight: bold;
+}
+
+.message-form input[type="text"],
+.message-form input[type="file"],
+.account-form input[type="text"],
+.account-form input[type="password"] {
+    margin-bottom: 0.8em;
+}
+
+/* -------------------------------
+   Encryption Method Radios
+---------------------------------*/
+.encryption-methods {
+    margin-bottom: 0.8em;
+}
+
+.encryption-methods input[type="radio"] {
+    margin-right: 0.3em;
+}
+
+.encryption-methods label {
+    margin-right: 1em;
+}
+
+/* -------------------------------
+   Success / Error Messages
+---------------------------------*/
+.success-message {
+    color: green;
+}
+
+.error-message {
+    color: red;
+}

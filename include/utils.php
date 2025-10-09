@@ -251,7 +251,7 @@ function send_message(Database $db, string $username, string $to_username, strin
         return ['success' => false, 'message' => "Invalid recipient username."];
     }
 
-    if (!valid_message($message, 65535)) { // allow long messages
+    if (!valid_message($message, 240)) { // allow long messages
         error_log("Error: Invalid message content by '$username'");
         return ['success' => false, 'message' => "Invalid message content."];
     }

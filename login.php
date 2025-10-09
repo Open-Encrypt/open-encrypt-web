@@ -1,10 +1,9 @@
 <?php
-ini_set('display_errors', 0);  // Display errors in the browser (for debugging purposes)
-ini_set('log_errors', 1);      // Enable error logging
-ini_set('error_log', '/var/www/open-encrypt.com/html/error.log');  // Absolute path to the error log file
-error_reporting(E_ALL);         // Report all types of errors
+ini_set('display_errors', 0);
+ini_set('log_errors', 1);
+ini_set('error_log', '/var/www/open-encrypt.com/html/error.log');
+error_reporting(E_ALL);
 
-// form a connection to the SQL database
 include_once 'include/db_config.php';
 include_once 'include/Database.php';
 require_once 'include/utils.php';
@@ -17,58 +16,71 @@ if (isset($_SESSION['user'])) {
     redirect("inbox.php");
 }
 
-// ------------------ Process form submission ------------------
-
 $username = $_POST['username'] ?? '';
 $password = $_POST['password'] ?? '';
-
 $error_message = '';
 
-$valid_username = valid_username($username) && username_exists($db, $username);
-$valid_password = valid_password($password);
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $valid_username = valid_username($username) && username_exists($db, $username);
+    $valid_password = valid_password($password);
 
-if ($valid_username && $valid_password) {
-    $row = $db->fetchOne("SELECT password FROM login_info WHERE username = ?", [$username], "s");
+    if ($valid_username && $valid_password) {
+        $row = $db->fetchOne("SELECT password FROM login_info WHERE username = ?", [$username], "s");
 
-    if ($row && password_verify($password, $row['password'])) {
-        $login_token = generate_token();
-        store_token($db, $username, $login_token);
+        if ($row && password_verify($password, $row['password'])) {
+            $login_token = generate_token();
+            store_token($db, $username, $login_token);
 
-        $_SESSION['user'] = $username;
-        redirect("inbox.php");
+            $_SESSION['user'] = $username;
+            redirect("inbox.php");
+        } else {
+            $error_message = "Incorrect password.";
+            error_log("Error: Incorrect password for user $username.");
+        }
     } else {
-        $error_message = "<p style='color:red;'>Incorrect upassword.</p>";
-        error_log("Error: Incorrect password.");
+        $error_message = "Incorrect username or password.";
+        error_log("Invalid username or password: $username");
     }
-} elseif ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $error_message = "<p style='color:red;'>Incorrect username or password.</p>";
-    error_log("Invalid username or password.");
 }
-
 ?>
 
-<html>
+<!DOCTYPE html>
+<html lang="en">
 <head>
+    <meta charset="UTF-8">
     <title>Open Encrypt - Login</title>
+    <link rel="stylesheet" href="style/style.css">
 </head>
 <body>
+
+<header>
     <h1><a href="index.html">Open Encrypt</a></h1>
     <h2>Status: Development (10/8/2025)</h2>
+</header>
 
-    <p><a href="create_account.php">Create Account</a></p>
+<main class="centered">
 
-    <form action="login.php" method="POST">
-        Username: <input type="text" name="username" value="<?= htmlspecialchars($username) ?>"><br>
-        Password: <input type="password" name="password"><br>
+    <form action="login.php" method="POST" class="auth-form">
+        <label for="username">Username:</label><br>
+        <input type="text" id="username" name="username" value="<?= htmlspecialchars($username) ?>"><br>
+
+        <label for="password">Password:</label><br>
+        <input type="password" id="password" name="password"><br>
+
         <input type="submit" value="Login">
     </form>
-    
-    <?= $error_message ?>
 
-    <?php
-    if (isset($_SESSION['user'])) {
-        error_log("Logged in user: " . htmlspecialchars($_SESSION['user']));
-    }
-    ?>
+    <div class="button-container">
+        <form action="create_account.php" method="get">
+            <input type="submit" value="Create Account">
+        </form>
+    </div>
+
+    <?php if ($error_message): ?>
+        <p class="error"><?= htmlspecialchars($error_message) ?></p>
+    <?php endif; ?>
+
+</main>
+
 </body>
 </html>

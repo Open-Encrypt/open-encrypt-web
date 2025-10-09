@@ -1,19 +1,31 @@
-<html>
-    <head>
-        <title>Open Encrypt</title>
-    </head>
-    <body>
-        <h1>Open Encrypt</h1>
-        <h2>Status: Development (10/8/2025)</h2>
-        <p>Welcome to Open Encrypt, an encrypted messaging platform. Please log in or create an account to continue.</p>
-    </body>
-    
-    <form action="login.php">
-    <input type="submit" value="Login" />
-    </form>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Open Encrypt</title>
+    <link rel="stylesheet" href="style/style.css">
+</head>
+<body>
 
-    <form action="create_account.php">
-    <input type="submit" value="Create account" />
-    </form>
+<header>
+    <h1>Open Encrypt</h1>
+    <h2>Status: Development (10/8/2025)</h2>
+</header>
 
+<main class="centered">
+    <p>Welcome to Open Encrypt, an encrypted messaging platform. Please log in or create an account to continue.</p>
+
+    <div class="button-container">
+        <form action="login.php" method="get">
+            <input type="submit" value="Login">
+        </form>
+
+        <form action="create_account.php" method="get">
+            <input type="submit" value="Create Account">
+        </form>
+    </div>
+</main>
+
+</body>
 </html>
+

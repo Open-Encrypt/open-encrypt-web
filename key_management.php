@@ -27,21 +27,24 @@ $username = $_SESSION['user'];
 <html>
 <head>
     <title>Open Encrypt - Key Management</title>
+    <link rel="stylesheet" href="style/style.css">
 </head>
 <body>
-<h1><a href="index.html">Open Encrypt</a></h1>
-<h2>Status: Development (10/8/2025)</h2>
 
-<!-- Navigation bar -->
-<div>
-    <a href="inbox.php">Home</a> |
-    <a href="send_message.php">Send Message</a> |
-    <a href="view_messages.php">View Messages</a> |
-    <a href="key_management.php">Key Management</a> |
-    <form method="post" style="display:inline; margin:0;">
-        <input type="submit" name="logout" value="Logout" style="cursor:pointer;">
-    </form>
-</div>
+<header>
+    <h1><a href="index.html">Open Encrypt</a></h1>
+    <h2>Status: Development (10/8/2025)</h2>
+    <nav>
+        <a href="inbox.php" class="nav-link">Home</a>
+        <a href="send_message.php" class="nav-link">Send Message</a>
+        <a href="view_messages.php" class="nav-link">View Messages</a>
+        <a href="key_management.php" class="nav-link">Key Management</a>
+        <form method="post" style="display:inline;">
+            <input type="submit" name="logout" value="Logout">
+        </form>
+    </nav>
+</header>
+
 <hr>
 
 <h2>Key Management: <?php echo htmlspecialchars($username); ?></h2>
@@ -97,14 +100,14 @@ if (isset($_POST['key_gen'], $_POST['encryption_method'])) {
     $public_key = trim($json_keys['public']);
 
     echo "<h3>Secret Key ($encryption_method)</h3>";
-    echo '<div id="secret_key_box" style="display:inline-block; max-height:200px; overflow-y:auto; padding:2px; border:1px solid #000; font-family:monospace; white-space:pre;">';
+    echo '<div id="secret_key_box" class="key-box">';
     echo chunk_split($secret_key, 64, "\n");
     echo '</div><br>';
     echo '<button onclick="copyKey(\'secret_key_box\')">Copy</button> ';
     echo '<button onclick="downloadKey(\'secret_key_box\', \'secret.key\')">Save</button>';
 
     echo "<h3>Public Key ($encryption_method)</h3>";
-    echo '<div id="public_key_box" style="display:inline-block; max-height:200px; overflow-y:auto; padding:2px; border:1px solid #000; font-family:monospace; white-space:pre;">';
+    echo '<div id="public_key_box" class="key-box">';
     echo chunk_split($public_key, 64, "\n");
     echo '</div><br>';
     echo '<button onclick="copyKey(\'public_key_box\')">Copy</button> ';

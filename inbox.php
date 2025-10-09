@@ -18,44 +18,48 @@ if (!isset($_SESSION['user'])) {
     exit();
 }
 
-// Optional: redirect immediately to send_message.php or view_messages.php
-// header("Location: send_message.php");
-// exit();
+if (array_key_exists('logout', $_POST)) {
+    logout();
+}
 ?>
 <!DOCTYPE html>
 <html>
 <head>
     <title>Open Encrypt - Inbox</title>
+    <link rel="stylesheet" href="style/style.css">
 </head>
 <body>
-<h1><a href="index.html">Open Encrypt</a></h1>
-<h2>Status: Development (10/8/2025)</h2>
 
-<div>
-    <a href="inbox.php">Home</a> |
-    <a href="send_message.php">Send Message</a> |
-    <a href="view_messages.php">View Messages</a> |
-    <a href="key_management.php">Key Management</a> |
-    <form method="post" style="display:inline; margin:0;">
-        <input type="submit" name="logout" value="Logout" style="cursor:pointer;">
-    </form>
-</div>
+<header>
+    <h1><a href="index.html">Open Encrypt</a></h1>
+    <h2>Status: Development (10/8/2025)</h2>
+    <nav>
+        <a href="inbox.php" class="nav-link">Home</a>
+        <a href="send_message.php" class="nav-link">Send Message</a>
+        <a href="view_messages.php" class="nav-link">View Messages</a>
+        <a href="key_management.php" class="nav-link">Key Management</a>
+        <form method="post" style="display:inline;">
+            <input type="submit" name="logout" value="Logout">
+        </form>
+    </nav>
+</header>
+
 <hr>
 
-<p>Welcome to your inbox, <?php echo htmlspecialchars($_SESSION['user']); ?>.</p>
-<h3>Instructions:</h3>
-<p>Use "Key Generation" to generate public and secret keys.</p>
-<p>You'll want to save your secret key to a file in a safe place. Do not share this file.</p>
-<p>Save your public key to the server so that others can use it to send you messages. You can view the remote public key after it's saved.</p>
-<p>Optionally, copy or download your public key locally.</p>
-<p>Once your keys are saved, send another user a message using their username.</p>
-<p>To view encrypted messages, go to "View Messages" and click "View Encrypted Messages".</p>
-<p>To decrypt messages, upload your secret key file and select the encryption method you used when generating your keys. Then click "Decrypt Messages".</p>
+<main>
+    <p>Welcome to your inbox, <?php echo htmlspecialchars($_SESSION['user']); ?>.</p>
 
-<?php
-if (array_key_exists('logout', $_POST)) {
-    logout();
-}
-?>
+    <h3>Instructions:</h3>
+    <ul>
+        <li>Use "Key Generation" to generate public and secret keys.</li>
+        <li>Save your secret key to a file in a safe place. Do not share this file.</li>
+        <li>Save your public key to the server so others can send you messages. You can view it after saving.</li>
+        <li>Optionally, copy or download your public key locally.</li>
+        <li>Once keys are saved, send another user a message using their username.</li>
+        <li>To view encrypted messages, go to "View Messages" and click "View Encrypted Messages".</li>
+        <li>To decrypt messages, upload your secret key file, select the encryption method, and click "Decrypt Messages".</li>
+    </ul>
+</main>
+
 </body>
 </html>
