@@ -162,12 +162,19 @@ if (isset($_POST['view_keys'])) {
         echo "<h3>Public Key ($encryption_method)</h3>";
         echo '<div id="public_key_box" style="display:inline-block; max-height:200px; overflow-y:auto; padding:2px; border:1px solid #000; font-family:monospace; white-space:pre;">';
         echo chunk_split($public_key, 64, "\n");
-        echo '</div>';
+        echo '</div><br>';
+        // Add copy and download buttons
+        echo '<button onclick="copyKey(\'public_key_box\')">Copy</button> ';
+        echo '<button onclick="downloadKey(\'public_key_box\', \'public.key\')">Save</button>';
+
+        $_SESSION['public_key'] = $public_key;
+        $_SESSION['encryption_method'] = $encryption_method;
     } else {
         error_log("Error: No valid public key found for user " . htmlspecialchars($username));
         echo "<p>No valid public key found.</p>";
     }
 }
+
 ?>
 </body>
 </html>
