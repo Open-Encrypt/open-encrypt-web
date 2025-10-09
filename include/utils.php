@@ -128,16 +128,11 @@ function valid_password(string $password, int $max_len = 24): bool {
  *  - Only letters, numbers, underscores, spaces, and common punctuation
  *  - Not longer than $max_len
  */
-function valid_message(string $message, int $max_len): bool {
-    if (empty($message)) {
-        return false;
-    }
-    if (!preg_match("/^[a-zA-Z0-9_ !?.:;~@#,()+=&$-]*$/", $message)) {
-        return false;
-    }
-    if (strlen($message) > $max_len) {
-        return false;
-    }
+function valid_message(string $message, int $max_len = 240): bool {
+    if (empty($message)) return false;
+    if (strlen($message) > $max_len) return false;
+    // Allow all printable characters except control characters
+    if (preg_match('/[[:cntrl:]&&[^\r\n\t]]/', $message)) return false;
     return true;
 }
 
@@ -247,5 +242,53 @@ function display_messages(Database $db, string $username, ?string $seckey_tempfi
     }
 }
 
+// send an encrypted message from one user to another
+function send_message(Database $db, string $username, string $to_username, string $message): array {
+    // Will return: ['success' => bool, 'message' => string]
+
+    if (!valid_username($to_username, 14)) {
+        error_log("Error: Invalid recipient username '$to_username' by '$username'");
+        return ['success' => false, 'message' => "Invalid recipient username."];
+    }
+
+    if (!valid_message($message, 65535)) { // allow long messages
+        error_log("Error: Invalid message content by '$username'");
+        return ['success' => false, 'message' => "Invalid message content."];
+    }
+
+    $recipient = $db->fetchOne(
+        "SELECT username FROM login_info WHERE username = ?",
+        [$to_username],
+        "s"
+    );
+    if ($recipient === null) {
+        error_log("Error: Non-existent recipient '$to_username' by '$username'");
+        return ['success' => false, 'message' => "Recipient does not exist."];
+    }
+
+    $pub_row = $db->fetchOne(
+        "SELECT public_key, method FROM public_keys WHERE username = ?",
+        [$to_username],
+        "s"
+    );
+    if ($pub_row === null || !valid_public_key($pub_row['public_key'], $pub_row['method'])) {
+        error_log("Error: Invalid/missing public key for '$to_username' (sent by '$username')");
+        return ['success' => false, 'message' => "Recipient’s public key is invalid or missing."];
+    }
+
+    $encrypted = encrypt_message($pub_row['public_key'], $message, $pub_row['method']);
+    $success = $db->execute(
+        "INSERT INTO messages (`from`,`to`,`message`,`method`) VALUES (?,?,?,?)",
+        [$username, $to_username, $encrypted, $pub_row['method']],
+        "ssss"
+    );
+
+    if (!$success) {
+        error_log("Database insert failed for message from '$username' to '$to_username'");
+        return ['success' => false, 'message' => "Database error when storing message."];
+    }
+
+    return ['success' => true, 'message' => "Message sent successfully using {$pub_row['method']}."];
+}
 
 ?>
