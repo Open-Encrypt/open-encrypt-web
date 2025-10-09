@@ -56,8 +56,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <html>
 <head>
     <title>Open Encrypt - Create Account</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="css/style.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Open Encrypt is a secure messaging app in development.">
+    <meta name="robots" content="index, follow">
+    <!-- Structured Data -->
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "WebSite",
+        "name": "Open Encrypt",
+        "url": "https://open-encrypt.com/"
+    }
+    </script>
 </head>
 <body>
 
