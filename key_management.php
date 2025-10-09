@@ -30,6 +30,7 @@ $username = $_SESSION['user'];
 </head>
 <body>
 <h1><a href="index.html">Open Encrypt</a></h1>
+<h2>Status: Development (10/8/2025)</h2>
 
 <!-- Navigation bar -->
 <div>
