@@ -1,6 +1,21 @@
 <?php
 // utility functions for user validation and token management
 
+// Ring-LWE key lengths (base64-encoded)
+define('RING_LWE_SECKEY_MAXLEN', 10936);  // max length of secret key
+define('RING_LWE_PUBKEY_MAXLEN', 21856);  // max length of public key
+
+// Module-LWE key lengths (base64-encoded)
+define('MODULE_LWE_SECKEY_MAXLEN', 43704);  // max length of secret key
+define('MODULE_LWE_PUBKEY_MAXLEN', 393228); // max length of public key
+
+// User constraints
+define('MAX_USERNAME_LEN', 14);  // max length of username
+define('MAX_PASSWORD_LEN', 24);  // max length of password
+
+// Message constraint
+define('MAX_MESSAGE_LEN', 240);  // max length of message
+
 function redirect($url) {
     header('Location: ' . $url);
     die();
@@ -94,7 +109,7 @@ function store_token(Database $db, string $username, string $token): bool {
  *  - Only letters, numbers, underscores
  *  - Not longer than $max_len
  */
-function valid_username(string $username, int $max_len = 14): bool {
+function valid_username(string $username, int $max_len = MAX_USERNAME_LEN): bool {
     if (empty($username)) {
         return false;
     }
@@ -114,7 +129,7 @@ function valid_username(string $username, int $max_len = 14): bool {
  * - Only letters, numbers, underscores, hyphens
  * - Not longer than $max_len
  */
-function valid_password(string $password, int $max_len = 24): bool {
+function valid_password(string $password, int $max_len = MAX_PASSWORD_LEN): bool {
     if (empty($password)) return false;
     if (!preg_match("/^[a-zA-Z0-9_-]*$/", $password)) return false;
     if (strlen($password) > $max_len) return false;
@@ -128,7 +143,7 @@ function valid_password(string $password, int $max_len = 24): bool {
  *  - Only letters, numbers, underscores, spaces, and common punctuation
  *  - Not longer than $max_len
  */
-function valid_message(string $message, int $max_len = 240): bool {
+function valid_message(string $message, int $max_len = MAX_MESSAGE_LEN): bool {
     if (empty($message)) return false;
     if (strlen($message) > $max_len) return false;
     // Allow all printable characters except control characters
@@ -150,10 +165,10 @@ function valid_secret_key(string $secret_key, string $encryption_method = "ring_
     if (!preg_match("/^[A-Za-z0-9+\/]+={0,2}$/", $secret_key)) {
         return false;
     }
-    if ($encryption_method === "ring_lwe" && strlen($secret_key) > 10936) {
+    if ($encryption_method === "ring_lwe" && strlen($secret_key) > RING_LWE_SECKEY_MAXLEN) {
         return false;
     }
-    if ($encryption_method === "module_lwe" && strlen($secret_key) > 43704) {
+    if ($encryption_method === "module_lwe" && strlen($secret_key) > MODULE_LWE_SECKEY_MAXLEN) {
         return false;
     }
     return true;
@@ -173,10 +188,10 @@ function valid_public_key(string $public_key, string $encryption_method = "ring_
     if (!preg_match("/^[A-Za-z0-9+\/]+={0,2}$/", $public_key)) {
         return false;
     }
-    if ($encryption_method === "ring_lwe" && strlen($public_key) > 21856) {
+    if ($encryption_method === "ring_lwe" && strlen($public_key) > RING_LWE_PUBKEY_MAXLEN) {
         return false;
     }
-    if ($encryption_method === "module_lwe" && strlen($public_key) > 393228) {
+    if ($encryption_method === "module_lwe" && strlen($public_key) > MODULE_LWE_PUBKEY_MAXLEN) {
         return false;
     }
     return true;
@@ -248,12 +263,12 @@ function display_messages(Database $db, string $username, ?string $seckey_tempfi
 function send_message(Database $db, string $username, string $to_username, string $message): array {
     // Will return: ['success' => bool, 'message' => string]
 
-    if (!valid_username($to_username, 14)) {
+    if (!valid_username($to_username, MAX_USERNAME_LEN)) {
         error_log("Error: Invalid recipient username '$to_username' by '$username'");
         return ['success' => false, 'message' => "Invalid recipient username."];
     }
 
-    if (!valid_message($message, 240)) { // allow long messages
+    if (!valid_message($message, MAX_MESSAGE_LEN)) { // allow long messages
         error_log("Error: Invalid message content by '$username'");
         return ['success' => false, 'message' => "Invalid message content."];
     }
