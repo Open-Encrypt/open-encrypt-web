@@ -6,18 +6,18 @@ require_once __DIR__ . '/../include/encryption.php';
 
 class ApiTest extends TestCase
 {
-    public function testRustEncryptionRoundtrip()
+    public function testRingLweEncryptionRoundtrip()
     {
         $plaintext = "Hello Open Encrypt!";
 
         // Generate key pair using default method ("ring_lwe")
         $keys = generate_keys();
         var_dump($keys);
-        $this->assertArrayHasKey('public_key', $keys);
-        $this->assertArrayHasKey('secret_key', $keys);
+        $this->assertArrayHasKey('public', $keys);
+        $this->assertArrayHasKey('secret', $keys);
 
-        $publicKey = $keys['public_key'];
-        $secretKey = $keys['secret_key'];
+        $publicKey = trim($keys['public']);
+        $secretKey = trim($keys['secret']);
 
         // Encrypt message
         $ciphertext = encrypt_message($publicKey, $plaintext);
@@ -35,11 +35,11 @@ class ApiTest extends TestCase
         // Generate key pair using module-lwe
         $keys = generate_keys("module_lwe");
         var_dump($keys); // <-- add this
-        $this->assertArrayHasKey('public_key', $keys);
-        $this->assertArrayHasKey('secret_key', $keys);
+        $this->assertArrayHasKey('public', $keys);
+        $this->assertArrayHasKey('secret', $keys);
 
-        $publicKey = $keys['public_key'];
-        $secretKey = $keys['secret_key'];
+        $publicKey = trim($keys['public']);
+        $secretKey = trim($keys['secret']);
 
         // Encrypt message
         $ciphertext = encrypt_message($publicKey, $plaintext, "module_lwe");
