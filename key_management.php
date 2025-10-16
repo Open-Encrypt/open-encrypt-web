@@ -106,14 +106,14 @@ if (isset($_POST['key_gen'], $_POST['encryption_method'])) {
     echo chunk_split($secret_key, 64, "\n");
     echo '</div><br>';
     echo '<button onclick="copyKey(\'secret_key_box\')">Copy</button> ';
-    echo '<button onclick="downloadKey(\'secret_key_box\', \'secret.key\')">Save</button>';
+    echo '<button onclick="downloadKey(\'secret_key_box\', \'' . $username . '_secret_key.txt\')">Save</button>';
 
     echo "<h3>Public Key ($encryption_method)</h3>";
     echo '<div id="public_key_box" class="key-box">';
     echo chunk_split($public_key, 64, "\n");
     echo '</div><br>';
     echo '<button onclick="copyKey(\'public_key_box\')">Copy</button> ';
-    echo '<button onclick="downloadKey(\'public_key_box\', \'public.key\')">Save</button>';
+    echo '<button onclick="downloadKey(\'public_key_box\', \'' . $username . '_public_key.txt\')">Save</button>';
 
     $_SESSION['public_key'] = $public_key;
     $_SESSION['encryption_method'] = $encryption_method;
@@ -160,12 +160,12 @@ if (isset($_POST['view_keys'])) {
 
     if ($public_key && $encryption_method && valid_public_key($public_key, $encryption_method)) {
         echo "<h3>Public Key ($encryption_method)</h3>";
-        echo '<div id="public_key_box" style="display:inline-block; max-height:200px; overflow-y:auto; padding:2px; border:1px solid #000; font-family:monospace; white-space:pre;">';
+        echo '<div id="public_key_box" class="key-box">';
         echo chunk_split($public_key, 64, "\n");
         echo '</div><br>';
         // Add copy and download buttons
         echo '<button onclick="copyKey(\'public_key_box\')">Copy</button> ';
-        echo '<button onclick="downloadKey(\'public_key_box\', \'public.key\')">Save</button>';
+        echo '<button onclick="downloadKey(\'public_key_box\', \'' . $username .'_public_key.txt\')">Save</button>';
 
         $_SESSION['public_key'] = $public_key;
         $_SESSION['encryption_method'] = $encryption_method;
