@@ -1,6 +1,7 @@
 # open-encrypt-web
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-brightgreen.svg)](https://opensource.org/licenses/MIT)
+![CI](https://github.com/open-encrypt/open-encrypt-web/actions/workflows/ci.yml/badge.svg)
 
 Full-stack encrypted messaging application using lattice-based methods in Rust + PHP + SQL.
 
