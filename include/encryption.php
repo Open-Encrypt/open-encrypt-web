@@ -6,7 +6,7 @@
  *  @return array An associative array containing 'public_key' and 'secret_key'
  */
 function generate_keys(string $encryption_method = "ring_lwe"){
-    $binary_path = "/var/www/open-encrypt.com/html/bin/";
+    $binary_path = __DIR__ . '/../bin/';
     $command = escapeshellcmd($binary_path . ($encryption_method == "ring_lwe" ? "ring-lwe-v0.1.8" : "module-lwe-v0.1.5") . " keygen");
     $json_string = shell_exec($command);
     try{
@@ -26,7 +26,7 @@ function generate_keys(string $encryption_method = "ring_lwe"){
  *  @return string The encrypted ciphertext
  */
 function encrypt_message(string $public_key, string $plaintext, string $encryption_method = "ring_lwe") : string {
-    $binary_path = "/var/www/open-encrypt.com/html/bin/";
+    $binary_path = __DIR__ . '/../bin/';
     $binary = ($encryption_method == "ring_lwe" ? "ring-lwe-v0.1.8" : "module-lwe-v0.1.5");
     $binary_full = $binary_path . $binary;
 
@@ -80,7 +80,7 @@ function encrypt_message(string $public_key, string $plaintext, string $encrypti
  * @throws Exception if Rust decryption fails
  */
 function decrypt_message(string $secret_key, string $ciphertext, string $encryption_method = "ring_lwe"): string {
-    $binary_path = "/var/www/open-encrypt.com/html/bin/";
+    $binary_path = __DIR__ . '/../bin/';
     $binary = $encryption_method === "ring_lwe" ? "ring-lwe-v0.1.8" : "module-lwe-v0.1.5";
 
     $command = $binary_path . $binary
@@ -113,7 +113,7 @@ function decrypt_message(string $secret_key, string $ciphertext, string $encrypt
  * @throws Exception if Rust decryption fails
  */
 function run_decrypt_with_files(string $seckey_file, string $ciphertext_file, string $encryption_method = "ring_lwe") : string {
-    $binary_path = "/var/www/open-encrypt.com/html/bin/";
+    $binary_path = __DIR__ . '/../bin/';
     $binary = ($encryption_method === "ring_lwe")
         ? "ring-lwe-v0.1.8"
         : "module-lwe-v0.1.5";
