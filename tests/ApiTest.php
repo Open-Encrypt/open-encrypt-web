@@ -8,11 +8,10 @@ class ApiTest extends TestCase
 {
     public function testRingLweEncryptionRoundtrip()
     {
-        $plaintext = "Hello Open Encrypt!";
+        $plaintext = "Test Ring LWE";
 
         // Generate key pair using default method ("ring_lwe")
         $keys = generate_keys();
-        var_dump($keys);
         $this->assertArrayHasKey('public', $keys);
         $this->assertArrayHasKey('secret', $keys);
 
@@ -25,6 +24,7 @@ class ApiTest extends TestCase
 
         // Decrypt message
         $decrypted = decrypt_message($secretKey, $ciphertext);
+        $decrypted = json_decode($decrypted, true, 512, JSON_THROW_ON_ERROR);
         $this->assertEquals($plaintext, $decrypted, "Decrypted text should match original plaintext");
     }
 
@@ -34,7 +34,6 @@ class ApiTest extends TestCase
 
         // Generate key pair using module-lwe
         $keys = generate_keys("module_lwe");
-        var_dump($keys); // <-- add this
         $this->assertArrayHasKey('public', $keys);
         $this->assertArrayHasKey('secret', $keys);
 
@@ -47,6 +46,7 @@ class ApiTest extends TestCase
 
         // Decrypt message
         $decrypted = decrypt_message($secretKey, $ciphertext, "module_lwe");
+        $decrypted = json_decode($decrypted, true, 512, JSON_THROW_ON_ERROR);
         $this->assertEquals($plaintext, $decrypted, "Decrypted text should match original plaintext");
     }
 }
