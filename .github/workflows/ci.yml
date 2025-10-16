@@ -1,0 +1,56 @@
+name: CI
+
+on: [push, pull_request]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    services:
+      mysql:
+        image: mysql:8
+        env:
+          MYSQL_ROOT_PASSWORD: root
+          MYSQL_DATABASE: open_encrypt_test
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping --silent"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+          extensions: pdo_mysql
+          coverage: none
+
+      - name: Install PHPUnit
+        run: |
+          wget -O phpunit https://phar.phpunit.de/phpunit-10.phar
+          chmod +x phpunit
+
+      - name: Wait for MySQL to be ready
+        run: |
+          for i in {1..30}; do
+            if mysqladmin ping -h127.0.0.1 -uroot -proot --silent; then
+              break
+            fi
+            sleep 1
+          done
+
+      - name: Initialize database schema
+        run: |
+          mysql -h127.0.0.1 -uroot -proot open_encrypt_test < schema.sql
+
+      - name: Make Rust binaries executable
+        run: chmod +x bin/*
+
+      - name: Run PHPUnit tests
+        run: ./phpunit --configuration tests/phpunit.xml
