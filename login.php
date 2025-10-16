@@ -95,5 +95,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 </main>
 
+<footer class="footer">
+    <p>
+        &copy; 2025 Open Encrypt. All rights reserved. | 
+        <a href="/privacy">Privacy Policy</a> | 
+        <a href="/terms">Terms of Service</a> | 
+        <a href="/contact">Contact</a>
+    </p>
+</footer>
+
 </body>
 </html>
