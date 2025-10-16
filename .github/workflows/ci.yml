@@ -1,56 +1,61 @@
-name: CI
+name: PHP CI
 
-on: [push, pull_request]
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
 
 jobs:
-  test:
+  build-and-test:
     runs-on: ubuntu-latest
 
-    services:
-      mysql:
-        image: mysql:8
-        env:
-          MYSQL_ROOT_PASSWORD: root
-          MYSQL_DATABASE: open_encrypt_test
-        ports:
-          - 3306:3306
-        options: >-
-          --health-cmd="mysqladmin ping --silent"
-          --health-interval=10s
-          --health-timeout=5s
-          --health-retries=5
-
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
+      # 1️⃣ Checkout repo
+      - name: Checkout code
+        uses: actions/checkout@v3
 
-      - name: Set up PHP
+      # 2️⃣ Set up PHP
+      - name: Setup PHP
         uses: shivammathur/setup-php@v2
         with:
           php-version: '8.2'
-          extensions: pdo_mysql
+          extensions: mysqli
           coverage: none
 
-      - name: Install PHPUnit
-        run: |
-          wget -O phpunit https://phar.phpunit.de/phpunit-10.phar
-          chmod +x phpunit
-
-      - name: Wait for MySQL to be ready
-        run: |
-          for i in {1..30}; do
-            if mysqladmin ping -h127.0.0.1 -uroot -proot --silent; then
-              break
-            fi
-            sleep 1
-          done
-
-      - name: Initialize database schema
-        run: |
-          mysql -h127.0.0.1 -uroot -proot open_encrypt_test < schema.sql
-
+      # 3️⃣ Make Rust binaries executable
       - name: Make Rust binaries executable
         run: chmod +x bin/*
 
+      # 4️⃣ Set up MySQL
+      - name: Set up MySQL
+        uses: mirromutth/mysql-action@v1
+        with:
+          mysql version: '8.0'
+          username: root
+          password: root
+          database: open_encrypt_test
+
+      # 5️⃣ Wait a few seconds for MySQL to start
+      - name: Wait for MySQL
+        run: sleep 10
+
+      # 6️⃣ Import test schema
+      - name: Import database schema
+        run: mysql -h 127.0.0.1 -u root -proot open_encrypt_test < schema.sql
+
+      # 7️⃣ Install PHPUnit PHAR
+      - name: Download PHPUnit
+        run: wget -O phpunit.phar https://phar.phpunit.de/phpunit-10.5.phar
+      - name: Make PHPUnit executable
+        run: chmod +x phpunit.phar
+
+      # 8️⃣ Run tests
       - name: Run PHPUnit tests
-        run: ./phpunit --configuration tests/phpunit.xml
+        run: ./phpunit.phar --configuration tests/phpunit.xml
+        env:
+          DB_HOST: 127.0.0.1
+          DB_USER: root
+          DB_PASS: root
+          DB_NAME: open_encrypt_test
+          DB_PORT: 3306

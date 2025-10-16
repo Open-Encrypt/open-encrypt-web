@@ -12,6 +12,7 @@ class ApiTest extends TestCase
 
         // Generate key pair using default method ("ring_lwe")
         $keys = generate_keys();
+        var_dump($keys);
         $this->assertArrayHasKey('public_key', $keys);
         $this->assertArrayHasKey('secret_key', $keys);
 
@@ -33,6 +34,7 @@ class ApiTest extends TestCase
 
         // Generate key pair using module-lwe
         $keys = generate_keys("module_lwe");
+        var_dump($keys); // <-- add this
         $this->assertArrayHasKey('public_key', $keys);
         $this->assertArrayHasKey('secret_key', $keys);
 
